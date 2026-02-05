@@ -53,8 +53,11 @@ impl Plugin for AppPlugin {
 
         app.add_plugins(TiledPlugin::default())
             .add_plugins(TiledPhysicsPlugin::<TiledPhysicsAvianBackend>::default())
-            .add_plugins(PhysicsPlugins::default().with_length_unit(100.0))
-            .add_plugins(PhysicsDebugPlugin);     
+            .add_plugins(PhysicsPlugins::default().with_length_unit(100.0));
+
+        #[cfg(debug_assertions)] {
+            app.add_plugins(PhysicsDebugPlugin);
+        }
 
         // Add other plugins.
         app.add_plugins((
