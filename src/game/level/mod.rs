@@ -1,21 +1,17 @@
-use bevy::prelude::*;
 use avian2d::prelude::*;
+use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
 
 use crate::{
     asset_tracking::LoadResource,
-    audio::music,    
-    game::player::{
-        self,
-        PlayerAssets, player,
-    },
+    audio::music,
+    game::player::{PlayerAssets, player},
     screens::Screen,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<LevelAssets>()
-        .add_systems(Startup, startup);
-        //.add_systems(Update, move_player);
+    app.load_resource::<LevelAssets>();
+    //.add_systems(Update, move_player);
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -23,7 +19,8 @@ pub(super) fn plugin(app: &mut App) {
 pub struct LevelAssets {
     #[dependency]
     music: Handle<AudioSource>,
-    //tiled_map: Handle<TiledMapAsset>, TODO: init_asset::<bevy_ecs_tiled::tiled::map::asset::TiledMapAsset>(
+    #[dependency]
+    tiled_map: Handle<TiledMapAsset>,
 }
 
 impl FromWorld for LevelAssets {
@@ -31,7 +28,7 @@ impl FromWorld for LevelAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             music: assets.load("audio/music/Fluffing A Duck.ogg"),
-            //tiled_map: assets.load("maps/map_tile-16x16.tmx"),
+            tiled_map: assets.load("maps/map_tile-16x16.tmx"),
         }
     }
 }
@@ -40,32 +37,28 @@ impl FromWorld for LevelAssets {
 pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
-    asset_server: Res<AssetServer>,
     player_assets: Res<PlayerAssets>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,    
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    commands.spawn((
-        Name::new("Level"),
-        Transform::default(),
-        Visibility::default(),
-        DespawnOnExit(Screen::Gameplay),
-        children![
-            player(75.0, &player_assets, &mut texture_atlas_layouts),
-            (
-                Name::new("Gameplay Music"),
-                music(level_assets.music.clone())
-            )
-        ],
-    ));    
-}
-
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
-            TiledMap(asset_server.load("maps/map_tile-16x16.tmx")),
-            TilemapAnchor::Center,
+            Name::new("Level"),
+            Transform::default(),
+            Visibility::default(),
+            DespawnOnExit(Screen::Gameplay),
+            children![
+                player(75.0, &player_assets, &mut texture_atlas_layouts),
+                (
+                    Name::new("Gameplay Music"),
+                    music(level_assets.music.clone()),
+                ),
+                (
+                    Name::new("Tiled Level"),
+                    TiledMap(level_assets.tiled_map.clone()),
+                    TilemapAnchor::Center,
+                ),
+            ],
         ))
-        // Automatically insert a `RigidBody::Static` component on all the map entities
         .observe(
             |collider_created: On<TiledEvent<ColliderCreated>>, mut commands: Commands| {
                 commands
@@ -75,16 +68,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         );
 }
 
-
-
-
-
 // A 'player' marker component
 #[derive(Default, Clone, Component)]
 pub struct PlayerMarker;
 
 // A simplistic controller
-/* 
+/*
 
 pub const MOVE_SPEED: f32 = 200.;
 fn move_player(
