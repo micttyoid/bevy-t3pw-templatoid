@@ -75,7 +75,6 @@ pub struct PlayerMarker;
 
 // A simplistic controller
 /*
-
 pub const MOVE_SPEED: f32 = 200.;
 fn move_player(
     keyboard_input: Res<ButtonInput<KeyCode>>,

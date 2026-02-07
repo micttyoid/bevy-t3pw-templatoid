@@ -33,6 +33,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[reflect(Component)]
+pub struct Player;
+
 /// The player character.
 pub fn player(
     max_speed: f32,
@@ -70,10 +75,6 @@ pub fn player(
         Collider::circle(PLAYER_COLLIDER_RADIUS),
     )
 }
-
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
-#[reflect(Component)]
-struct Player;
 
 fn record_player_directional_input(
     input: Res<ButtonInput<KeyCode>>,
