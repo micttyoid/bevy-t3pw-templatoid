@@ -3,25 +3,20 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod asset_tracking;
+mod asset_loader;
 mod audio;
-mod game;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod game;
 mod menus;
 mod screens;
 mod theme;
 mod utils;
 
-use bevy::{
-    asset::AssetMetaCheck,
-    camera::*,
-    prelude::*,
-};
+use bevy::{asset::AssetMetaCheck, camera::*, prelude::*};
 
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-
 
 //use bevy_ecs_tiled::prelude::*;
 
@@ -35,7 +30,8 @@ impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
         // Add Bevy plugins.
         app.add_plugins(
-            DefaultPlugins.build()
+            DefaultPlugins
+                .build()
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
@@ -54,18 +50,19 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
-        
+
         app.add_plugins(TilemapPlugin);
         app.add_plugins(utils::plugin);
 
         app.add_plugins(PhysicsPlugins::default().with_length_unit(100.0));
-        #[cfg(debug_assertions)] {
+        #[cfg(debug_assertions)]
+        {
             app.add_plugins(PhysicsDebugPlugin);
         }
 
         // Add other plugins.
         app.add_plugins((
-            asset_tracking::plugin,
+            asset_loader::plugin,
             audio::plugin,
             game::plugin,
             #[cfg(feature = "dev")]

@@ -1,13 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{asset_tracking::LoadResource, audio::sound_effect};
+use crate::{asset_loader::TitleAssets, audio::sound_effect};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(apply_interaction_palette_on_click);
     app.add_observer(apply_interaction_palette_on_over);
     app.add_observer(apply_interaction_palette_on_out);
 
-    app.load_resource::<InteractionAssets>();
     app.add_observer(play_sound_effect_on_click);
     app.add_observer(play_sound_effect_on_over);
 }
@@ -56,37 +55,18 @@ fn apply_interaction_palette_on_out(
     *bg = palette.none.into();
 }
 
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-struct InteractionAssets {
-    #[dependency]
-    hover: Handle<AudioSource>,
-    #[dependency]
-    click: Handle<AudioSource>,
-}
-
-impl FromWorld for InteractionAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            hover: assets.load("audio/sound_effects/button_hover.ogg"),
-            click: assets.load("audio/sound_effects/button_click.ogg"),
-        }
-    }
-}
-
 fn play_sound_effect_on_click(
     _: On<Pointer<Click>>,
-    interaction_assets: If<Res<InteractionAssets>>,
+    assets: If<Res<TitleAssets>>,
     mut commands: Commands,
 ) {
-    commands.spawn(sound_effect(interaction_assets.click.clone()));
+    commands.spawn(sound_effect(assets.button_click_sfx.clone()));
 }
 
 fn play_sound_effect_on_over(
     _: On<Pointer<Over>>,
-    interaction_assets: If<Res<InteractionAssets>>,
+    assets: If<Res<TitleAssets>>,
     mut commands: Commands,
 ) {
-    commands.spawn(sound_effect(interaction_assets.hover.clone()));
+    commands.spawn(sound_effect(assets.button_hover_sfx.clone()));
 }

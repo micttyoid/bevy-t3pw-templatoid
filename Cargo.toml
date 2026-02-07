@@ -15,10 +15,12 @@ tracing = { version = "0.1", features = [
     "max_level_debug",
     "release_max_level_warn",
 ] }
+bevy_enhanced_input = "0.23.2"
+bevy_asset_loader = "0.25.0"
+bevy_aseprite_ultra = "0.8.1"
 
 [target.wasm32-unknown-unknown.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
-getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 
 [features]
 # Default to a native dev build.

@@ -13,81 +13,45 @@
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 //use avian2d::prelude::*;
-use crate::{
-    AppSystems, PausableSystems,
-};
+use crate::game::player::{Player, PlayerDirection, PlayerState};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        Update,
-        (apply_movement, apply_screen_wrap)
-            .chain()
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
-    );
+    app.add_plugins(EnhancedInputPlugin)
+        .add_input_context::<Player>()
+        .add_observer(apply_movement);
 }
 
-/// These are the movement parameters for our character controller.
-/// For now, this is only used for a single player, but it could power NPCs or
-/// other players as well.
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct MovementController {
-    /// The direction the character wants to move in.
-    pub intent: Vec2,
+#[derive(Debug, InputAction)]
+#[action_output(Vec2)]
+pub struct Movement;
 
-    /// Maximum speed in world units per second.
-    /// 1 world unit = 1 pixel when using the default 2D camera and no physics engine.
-    pub max_speed: f32,
-}
-
-impl Default for MovementController {
-    fn default() -> Self {
-        Self {
-            intent: Vec2::ZERO,
-            max_speed: 1.0,
+fn apply_movement(movement: On<Fire<Movement>>, mut query: Query<(&mut Transform, &mut Player)>) {
+    let (mut transform, mut player) = query.get_mut(movement.context).unwrap();
+    let direction = movement.value.normalize();
+    if direction != Vec2::ZERO {
+        player.state = PlayerState::Walk;
+        transform.translation.x += player.walk_speed * direction.x;
+        transform.translation.y += player.walk_speed * direction.y;
+        if direction.y.abs() > direction.x.abs() {
+            player.direction = if direction.y > 0.0 {
+                PlayerDirection::Up
+            } else {
+                PlayerDirection::Down
+            };
+        } else {
+            if direction.x > 0.0 {
+                player.direction = PlayerDirection::Right;
+                transform.scale.x = 1.0;
+            } else {
+                player.direction = PlayerDirection::Left;
+                transform.scale.x = -1.0;
+            };
         }
+    } else {
+        player.state = PlayerState::Idle;
     }
-}
-
-
-fn apply_movement(
-    time: Res<Time>,
-    mut movement_query: Query<(&MovementController, &mut Transform)>,
-) {
-    for (controller, mut transform) in &mut movement_query {
-        let velocity = controller.max_speed * controller.intent;
-        transform.translation += velocity.extend(0.0) * time.delta_secs();
-    }
-}
-
-/*
-fn apply_movement(
-    mut movement_query: Query<(&MovementController, &mut LinearVelocity,)>,
-) {
-    for (controller, mut rb_vel) in movement_query.iter_mut() {
-        rb_vel.0 = controller.max_speed * controller.intent; // normal
-        //rb_vel.0 = Vec2::new(0.25, 0.); // normal
-        
-    }
-}
-    */
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct ScreenWrap;
-
-fn apply_screen_wrap(
-    window: Single<&Window, With<PrimaryWindow>>,
-    mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
-) {
-    let size = window.size() + 256.0;
-    let half_size = size / 2.0;
-    for mut transform in &mut wrap_query {
-        let position = transform.translation.xy();
-        let wrapped = (position + half_size).rem_euclid(size) - half_size;
-        transform.translation = wrapped.extend(transform.translation.z);
-    }
+    info!("Moved {:?}", movement.value);
 }
