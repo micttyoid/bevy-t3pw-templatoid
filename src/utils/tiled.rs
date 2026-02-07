@@ -24,11 +24,7 @@ use bevy::{
     },
     log::{info, warn},
     platform::collections::HashMap,
-    prelude::{
-        App, Vec3,
-        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,
-        GlobalTransform, Handle, Image, MessageReader, Query, Res, Transform, Update,
-    },
+    prelude::*,
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
@@ -39,13 +35,33 @@ use tiled::{
 };
 
 use crate::{
+    // TODO: asset_tracking::LoadResource,
     game::player::PLAYER_Z_TRANSLATION,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.init_asset::<TiledMap>()
+    app
+        .init_asset::<TiledMap>()
         .register_asset_loader(TiledLoader)
         .add_systems(Update, process_loaded_maps);
+}
+
+/// A system that spawns the main level.
+pub fn spawn_tiled_map <const MAP_NUMBER: usize>(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let asset_path = match MAP_NUMBER {
+        1 => "map1.tile-16x16.tmx",
+        2 => "map2.tile-16x16.tmx",
+        _ => {
+            panic!("No such map number exists");
+        },
+    };
+    commands.spawn(TiledMapBundle {
+        tiled_map: TiledMapHandle(asset_server.load(asset_path)),
+        ..Default::default()
+    });
 }
 
 #[derive(TypePath, Asset)]
@@ -140,7 +156,7 @@ impl AssetLoader for TiledLoader {
                 if let Some(obj_layer_data_collision) = &tile_data.collision {
                     let mut rects = Vec::new();
                     for collision_obj_data in obj_layer_data_collision.object_data() {
-                        //println!("Object data shape: {:?}", collision_obj_data.shape);
+                        //info!("Object data shape: {:?}", collision_obj_data.shape);
                         match collision_obj_data.shape {
                             Rect {width, height} => {
                                 rects.push((
@@ -211,7 +227,6 @@ impl AssetLoader for TiledLoader {
 
                     info!(?asset_path);
                     let texture: Handle<Image> = load_context.load(asset_path.clone());
-
                     TilemapTexture::Single(texture.clone())
                 }
             };

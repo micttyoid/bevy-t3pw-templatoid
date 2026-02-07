@@ -15,7 +15,7 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>();
-    app.add_systems(Startup, startup);
+    //app.add_systems(Startup, startup);
     //.add_systems(Update, move_player);
 }
 
@@ -25,8 +25,6 @@ pub(super) fn plugin(app: &mut App) {
 pub struct LevelAssets {
     #[dependency]
     music: Handle<AudioSource>,
-    //#[dependency]
-    //tiled_map: Handle<TiledMapAsset>,
 }
 
 impl FromWorld for LevelAssets {
@@ -36,16 +34,6 @@ impl FromWorld for LevelAssets {
             music: assets.load("audio/music/Fluffing A Duck.ogg"),
         }
     }
-}
-
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    //let map = asset_server.load("map1.tile-16x16.tmx");
-    let map = asset_server.load("map2.tile-16x16.tmx");
-    let map_handle = utils_tiled::TiledMapHandle(map);
-    commands.spawn(utils_tiled::TiledMapBundle {
-        tiled_map: map_handle,
-        ..Default::default()
-    });
 }
 
 /// A system that spawns the main level.
