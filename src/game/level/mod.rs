@@ -39,7 +39,8 @@ impl FromWorld for LevelAssets {
 }
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let map = asset_server.load("map_tile-16x16.tmx");
+    //let map = asset_server.load("map1.tile-16x16.tmx");
+    let map = asset_server.load("map2.tile-16x16.tmx");
     let map_handle = utils_tiled::TiledMapHandle(map);
     commands.spawn(utils_tiled::TiledMapBundle {
         tiled_map: map_handle,
