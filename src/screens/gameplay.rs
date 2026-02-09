@@ -8,6 +8,11 @@ use crate::{
     Pause, game::level::spawn_level, menus::Menu, screens::Screen, utils::tiled::spawn_tiled_map,
 };
 
+
+/// The entity lives throug [`Screen::Gameplay`]
+#[derive(Component, Default)]
+pub struct GameplayLifetime;
+
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Gameplay),
@@ -30,7 +35,7 @@ pub(super) fn plugin(app: &mut App) {
             ),
         ),
     );
-    app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
+    app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause, cleanup));
     app.add_systems(
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),
@@ -79,6 +84,10 @@ fn spawn_pause_overlay(mut commands: Commands) {
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
         DespawnOnExit(Pause(true)),
     ));
+}
+
+fn cleanup(mut commands: Commands, mut query: Query<Entity, With<GameplayLifetime>>) {
+    query.iter_mut().for_each(|entity| commands.entity(entity).despawn());
 }
 
 fn open_pause_menu(mut next_menu: ResMut<NextState<Menu>>) {

@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 use avian2d::prelude::*;
 use crate::{
+    screens::gameplay::GameplayLifetime,
     AppSystems, PausableSystems,
 };
-
-// TODO: Screen::Gameplay bounded or level bounded lifecylce
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -34,6 +33,7 @@ fn update_projectiles() {}
 /// The chakra, bullet, ...
 /// [`Player`] can throw. [`Mob`] can throw. or throw [`Source`] instead
 #[derive(Component)]
+#[require(GameplayLifetime)]
 pub struct Projectile;
 
 /// The source where the projectiles spread out from
@@ -41,4 +41,5 @@ pub struct Projectile;
 /// in the game touhou.
 /// [`Player`] can throw. [`Mob`] can throw.
 #[derive(Component)]
+#[require(GameplayLifetime)]
 pub struct Source;
