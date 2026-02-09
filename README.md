@@ -1,3 +1,8 @@
+# Note on branch
+
+The main(the template branch is not set main for jamming).
+The main(template branch) is [here](https://github.com/micttyoid/bevy-jam-7-templatoid/tree/main)
+
 # Bevy Jam 7 Templatoid
 
 Forked from [Bevy_new_2d](https://github.com/TheBevyFlock/bevy_new_2d)
