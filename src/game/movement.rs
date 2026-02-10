@@ -83,11 +83,11 @@ fn on_collision(
         if let Ok((proj_entity, projectile)) = projectile_query.get_mut(proj_entity) {
             if let Ok((enemy_entity, mut enemy)) = enemy_query.get_mut(c2) {
                 // Enemy got hit!
-                enemy.life -= (enemy.life - 1).max(0);
+                enemy.life = enemy.life.saturating_sub(1);
             } else {
                 let (player_entity, player) = &mut* player;
                 // Player got hit!
-                player.life -= (player.life - 1).max(0);
+                player.life = player.life.saturating_sub(1);
             }
         }
     }
@@ -119,7 +119,6 @@ fn apply_player_throw(
             basic_projectile(xy, direction, &anim_assets),
         );        
     }
-
 }
 
 /// This should be where the optimization takes place if the frame dropss
