@@ -8,6 +8,7 @@ use bevy::{prelude::*, state::state::FreelyMutableState};
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
+    menus::Menu,
     game::{
         animation::AnimationAssets,
         level::enemies::{basic_boss, basic_enemy},
@@ -119,6 +120,7 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
+                        DespawnOnExit(Menu::None), // To remove at ending such as to Menu::Credit
                         music(level_assets.music.clone())
                     )
                 ],

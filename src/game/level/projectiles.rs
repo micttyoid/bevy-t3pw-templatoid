@@ -10,7 +10,6 @@ use crate::{
         player::*,
     },
     screens::gameplay::GameplayLifetime,
-    utils::collisions_layers::GameLayer,
 };
 
 pub const PROJECTILE_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
@@ -85,9 +84,5 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, thrower_radius: f32, anim_ass
         GravityScale(0.0),
         Collider::circle(basic_projectile_collision_radius),
         Restitution::new(1.0),
-        CollisionLayers::new(
-            GameLayer::FriendlyProj,
-            [GameLayer::Walls, GameLayer::Enemy],
-        ),
     )
 }

@@ -10,7 +10,6 @@ use crate::{
         animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState, PlayerDirection},
         movement::{MovementController, ScreenWrap},
     },
-    utils::collisions_layers::GameLayer,
 };
 
 pub const PLAYER_Z_TRANSLATION: f32 = 100.;
@@ -72,15 +71,6 @@ pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(PLAYER_COLLIDER_RADIUS),
-        CollisionLayers::new(
-            GameLayer::Player,
-            [
-                GameLayer::Walls,
-                GameLayer::Enemy,
-                GameLayer::HostileProj,
-                GameLayer::Pickups,
-            ],
-        ),
     )
 }
 

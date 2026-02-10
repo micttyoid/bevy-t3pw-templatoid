@@ -6,7 +6,6 @@ use crate::{
     PausableSystems,
     game::{animation::*, movement::*, player::PLAYER_Z_TRANSLATION},
     screens::gameplay::GameplayLifetime,
-    utils::collisions_layers::GameLayer,
 };
 
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
@@ -60,10 +59,6 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
-        CollisionLayers::new(
-            GameLayer::Enemy,
-            [GameLayer::Walls, GameLayer::Player, GameLayer::FriendlyProj],
-        ),
     )
 }
 
@@ -87,10 +82,6 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
-        CollisionLayers::new(
-            GameLayer::Enemy,
-            [GameLayer::Walls, GameLayer::Player, GameLayer::FriendlyProj],
-        ),
     )
 }
 

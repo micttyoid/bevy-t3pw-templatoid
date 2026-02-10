@@ -40,7 +40,6 @@ use crate::{
     game::{level::Level, player::PLAYER_Z_TRANSLATION},
     screens::Screen,
     utils::{
-        collisions_layers::GameLayer,
         tiled::shaper::{PreSharedShape, shaper},
     },
 };
@@ -538,15 +537,6 @@ fn process_loaded_maps(
                                 ..Default::default()
                             },
                             RigidBody::Static,
-                            CollisionLayers::new(
-                                GameLayer::Walls,
-                                [
-                                    GameLayer::Player,
-                                    GameLayer::FriendlyProj,
-                                    GameLayer::Enemy,
-                                    GameLayer::HostileProj,
-                                ],
-                            ),
                         ));
 
                         layer_storage

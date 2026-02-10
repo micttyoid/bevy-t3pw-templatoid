@@ -1,3 +1,4 @@
+/*
 use avian2d::prelude::PhysicsLayer;
 
 #[derive(PhysicsLayer, Clone, Copy, Debug, Default)]
@@ -11,7 +12,7 @@ pub enum GameLayer {
     Pickups,      // Layer 5
 }
 
-/*
+
 * Layer        | Collides with
 * --
 * Walls        | Player, FriendlyProj, Enemy, HostileProj
