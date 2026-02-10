@@ -3,7 +3,10 @@ pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
 
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    state::state::FreelyMutableState,
+};
 
 use crate::{
     asset_tracking::LoadResource,
@@ -33,7 +36,7 @@ pub(super) fn plugin(app: &mut App) {
 /// [`Level`] exists in both [`Screen::Gameplay`] and [`Screen::Loading`]
 /// When a condition meets at [`screens::gameplay::check_boss_and_player`],
 /// The next is level is set, and screen is set [`Screen::Loading`].
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States, Reflect,)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Reflect,)]
 pub enum Level {
     #[default]
     Foo,
@@ -54,6 +57,12 @@ impl SubStates for Level {
         }
     }
 }
+
+impl States for Level {
+    const DEPENDENCY_DEPTH : usize = <Level as SubStates>::SourceStates::SET_DEPENDENCY_DEPTH + 1;
+}
+
+impl FreelyMutableState for Level {}
 
 impl Level {
     pub const LAST_LEVEL: Level = Level::Quux;
