@@ -1,17 +1,15 @@
-use bevy::prelude::*;
 use avian2d::prelude::*;
+use bevy::prelude::*;
 
 use crate::{
-    game::{
-        movement::*,
-        animation::*,
-        player::*,
-        level::{
-            enemies::{basic_enemy, basic_boss,},
-        },
-    },    
-    screens::gameplay::GameplayLifetime,
     AppSystems, PausableSystems,
+    game::{
+        animation::*,
+        level::enemies::{basic_boss, basic_enemy},
+        movement::*,
+        player::*,
+    },
+    screens::gameplay::GameplayLifetime,
 };
 
 pub const PROJECTILE_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
@@ -19,10 +17,7 @@ pub const PROJECTILE_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (
-            update_sources,
-            update_projectiles,
-        ).in_set(PausableSystems),
+        (update_sources, update_projectiles).in_set(PausableSystems),
     );
 }
 
@@ -51,7 +46,7 @@ pub struct Projectile {
 }
 
 impl Default for Projectile {
-    fn default () -> Self {
+    fn default() -> Self {
         Self {
             direction: Dir2::NEG_Y,
         }
@@ -59,7 +54,7 @@ impl Default for Projectile {
 }
 
 /// The source where the projectiles spread out from
-/// This is to make projectile pattern that's spread out from a source like 
+/// This is to make projectile pattern that's spread out from a source like
 /// in the game touhou.
 /// [`Player`] can throw. [`Mob`] can throw.
 #[derive(Component)]
@@ -72,11 +67,12 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, anim_assets: &AnimationAssets
     let speed: f32 = 500.0;
     //    pr ----- | ---------- P
     //    ^ spawned with room
-    let new_xy = (basic_projectile_collision_radius + PLAYER_COLLIDER_RADIUS + 1.0e-5) * direction + xy;
-    (                
+    let new_xy =
+        (basic_projectile_collision_radius + PLAYER_COLLIDER_RADIUS + 1.0e-5) * direction + xy;
+    (
         Name::new("Basic Projectile"),
         Projectile { direction },
-        LinearVelocity(speed * direction.as_vec2()), 
+        LinearVelocity(speed * direction.as_vec2()),
         LinearDamping(0.0),
         //Sprite::default(),
         ScreenWrap,
@@ -86,5 +82,6 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, anim_assets: &AnimationAssets
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(basic_projectile_collision_radius),
+        Restitution::new(1.0),
     )
 }

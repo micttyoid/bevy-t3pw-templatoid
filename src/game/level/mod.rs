@@ -12,23 +12,17 @@ use crate::{
     asset_tracking::LoadResource,
     audio::music,
     game::{
-        player::{player},
         animation::AnimationAssets,
-        level::{
-            enemies::{basic_enemy, basic_boss,},
-        },
+        level::enemies::{basic_boss, basic_enemy},
+        player::player,
     },
     screens::Screen,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app
-        .load_resource::<LevelAssets>()
+    app.load_resource::<LevelAssets>()
         .init_state::<Level>()
-        .add_plugins((
-            enemies::plugin,
-            projectiles::plugin,
-        ));
+        .add_plugins((enemies::plugin, projectiles::plugin));
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
@@ -120,9 +114,9 @@ pub fn spawn_level(
                 DespawnOnExit(Screen::Gameplay),
                 children![
                     player(100.0, &anim_assets),
-                    basic_enemy((2., 5.).into(), &anim_assets),
-                    basic_enemy((4., 5.).into(), &anim_assets),
-                    basic_boss((6., 5.).into(), &anim_assets),
+                    basic_enemy((-70., 20.).into(), &anim_assets),
+                    basic_enemy((-60., 0.).into(), &anim_assets),
+                    basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
                         music(level_assets.music.clone())

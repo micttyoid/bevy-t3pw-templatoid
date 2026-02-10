@@ -1,43 +1,26 @@
-use bevy::prelude::*;
 use avian2d::prelude::*;
+use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 
 use crate::{
     PausableSystems,
-    game::{
-        level::{
-            projectiles::*,
-        },
-        movement::*,
-        animation::*,        
-        player::PLAYER_Z_TRANSLATION,
-    },
-    screens::gameplay::GameplayLifetime,    
+    game::{animation::*, level::projectiles::*, movement::*, player::PLAYER_Z_TRANSLATION},
+    screens::gameplay::GameplayLifetime,
 };
 
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            update_enemies,
-        ).in_set(PausableSystems),
-    );
+    app.add_systems(Update, (update_enemies,).in_set(PausableSystems));
 }
 
-fn update_enemies(
-    mut commands: Commands,
-) {
-
-}
+fn update_enemies(mut commands: Commands) {}
 
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 /// Do not despawn at the life zero like the other enemies
 #[derive(Component)]
 #[require(GameplayLifetime, Enemy)]
 pub struct Boss;
-
 
 #[derive(Component)]
 #[require(GameplayLifetime, Collider)]
@@ -56,8 +39,6 @@ impl Default for Enemy {
 #[derive(Asset, Clone, Reflect)]
 pub struct EnemyAssets {
     pub aseprite: Handle<Aseprite>,
-    #[dependency]
-    pub steps: Vec<Handle<AudioSource>>,
 }
 
 /// An example of an enemy
@@ -66,15 +47,11 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Basic Enemy"),
         Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
-        EnemyAnimation {
-            state: EnemyAnimationState::default(),
-            direction: EnemyDirection::default(),
-        },
         AseAnimation {
-            animation: Animation::tag("walk-up")
+            animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
-                .with_speed(2.0),
+                .with_speed(1.0),
             aseprite: anim_assets.enemies.aseprite.clone(),
         },
         Sprite::default(),
@@ -89,16 +66,12 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 
 pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
-    (                
+    (
         Name::new("Basic Boss"),
         Boss,
-        Enemy { life: 1 },        
-        EnemyAnimation {
-            state: EnemyAnimationState::default(),
-            direction: EnemyDirection::default(),
-        },
+        Enemy { life: 1 },
         AseAnimation {
-            animation: Animation::tag("walk-up")
+            animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(2.0),

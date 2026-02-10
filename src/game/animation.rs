@@ -5,10 +5,7 @@
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
 use bevy::prelude::*;
-use bevy_aseprite_ultra::{
-    AsepriteUltraPlugin,
-    prelude::*,
-};
+use bevy_aseprite_ultra::{AsepriteUltraPlugin, prelude::*};
 use rand::seq::IndexedRandom;
 
 use crate::{
@@ -78,7 +75,6 @@ fn trigger_step_sound_effect(
     }
 }
 
-
 /// Component that tracks player's animation state.
 /// It is tightly bound to aseprite animation we use.
 #[derive(Component, Reflect)]
@@ -97,31 +93,6 @@ pub enum PlayerAnimationState {
 
 #[derive(Reflect, PartialEq, Default)]
 pub enum PlayerDirection {
-    #[default]
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-/// Component that tracks enemy's animation state.
-/// It is tightly bound to aseprite animation we use.
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct EnemyAnimation {
-    pub state: EnemyAnimationState,
-    pub direction: EnemyDirection,
-}
-
-#[derive(Reflect, PartialEq, Default)]
-pub enum EnemyAnimationState {
-    Walk,
-    #[default]
-    Idle,
-}
-
-#[derive(Reflect, PartialEq, Default)]
-pub enum EnemyDirection {
     #[default]
     Up,
     Down,
@@ -150,13 +121,7 @@ impl FromWorld for AnimationAssets {
                 ],
             },
             enemies: EnemyAssets {
-                aseprite: assets.load("textures/chars/basic_enemy.aseprite"),
-                steps: vec![
-                    assets.load("audio/sound_effects/step1.ogg"),
-                    assets.load("audio/sound_effects/step2.ogg"),
-                    assets.load("audio/sound_effects/step3.ogg"),
-                    assets.load("audio/sound_effects/step4.ogg"),
-                ],
+                aseprite: assets.load("textures/chars/seedling.aseprite"),
             },
         }
     }
