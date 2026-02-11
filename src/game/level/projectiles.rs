@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use bevy_aseprite_ultra::prelude::{Animation, AnimationDirection, AnimationRepeat, AseAnimation};
 use std::ops::{Deref, DerefMut};
 
 use crate::{
@@ -76,7 +77,14 @@ pub fn basic_projectile(
         Projectile { direction },
         LinearVelocity(speed * direction.as_vec2()),
         LinearDamping(0.0),
-        //Sprite::default(),
+        AseAnimation {
+            animation: Animation::tag("Spin")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.player.chakram.clone(),
+        },
+        Sprite::default(),
         ScreenWrap,
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),

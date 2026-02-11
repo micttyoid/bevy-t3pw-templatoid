@@ -130,6 +130,7 @@ fn record_player_directional_input(
 #[derive(Asset, Clone, Reflect)]
 pub struct PlayerAssets {
     pub aseprite: Handle<Aseprite>,
+    pub chakram: Handle<Aseprite>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
 }

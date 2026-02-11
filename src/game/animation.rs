@@ -119,6 +119,7 @@ impl FromWorld for AnimationAssets {
                     assets.load("audio/sound_effects/step3.ogg"),
                     assets.load("audio/sound_effects/step4.ogg"),
                 ],
+                chakram: assets.load("textures/props/chakram.aseprite"),
             },
             enemies: EnemyAssets {
                 aseprite: assets.load("textures/chars/seedling.aseprite"),
