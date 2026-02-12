@@ -35,6 +35,7 @@ pub(super) fn plugin(app: &mut App) {
 pub struct Player {
     pub life: usize,
     pub cool: f32, // throw cool time. every [`cool`] second, the player can throw
+    pub ammo: u32,
 }
 
 impl Default for Player {
@@ -42,6 +43,7 @@ impl Default for Player {
         Self {
             life: 3, // "3 lives on player?"
             cool: 0.5,
+            ammo: 3,
         }
     }
 }

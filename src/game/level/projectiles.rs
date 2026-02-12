@@ -88,6 +88,49 @@ pub enum Due {
 ///     &anim_assets,
 /// ));
 /// ```s
+pub fn player_chakra<HostilityComponent: Component + Default>(
+    xy: Vec2,
+    direction: Dir2,
+    thrower_radius: f32,
+    anim_assets: &AnimationAssets,
+) -> impl Bundle {
+    let player_projectile_collision_radius: f32 = 2.;
+    let speed: f32 = 300.0;
+    let new_xy = (player_projectile_collision_radius + thrower_radius + 1.0e-3) * direction + xy;
+    let chakram_projectile_life: f32 = 5.0; // seconds
+    (
+        Name::new("Chakra"),
+        Projectile {
+            direction,
+            dues: vec![
+                Due::BounceDown(5),
+                Due::Lifespan(Timer::from_seconds(
+                    chakram_projectile_life,
+                    TimerMode::Once,
+                )),
+            ],
+        },
+        HostilityComponent::default(),
+        LinearVelocity(speed * direction.as_vec2()),
+        LinearDamping(0.0),
+        AseAnimation {
+            animation: Animation::tag("Spin")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.player.chakram.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(player_projectile_collision_radius),
+        Restitution::new(1.5),
+    )
+}
+
 pub fn basic_projectile<HostilityComponent: Component + Default>(
     xy: Vec2,
     direction: Dir2,
@@ -200,10 +243,10 @@ pub fn lifespan_projectile<HostilityComponent: Component + Default>(
 fn update_projectiles(
     mut commands: Commands,
     time: Res<Time>,
-    player: Single<Entity, With<Player>>,
-    mut projectile_query: Query<(Entity, &mut Projectile)>,
+    mut player: Single<&mut Player>,
+    mut projectile_query: Query<(Entity, &mut Projectile, Has<Friendly>)>,
 ) {
-    for (proj_entity, mut projectile) in projectile_query {
+    for (proj_entity, mut projectile, is_friendly) in projectile_query {
         for mut due in projectile.dues.iter_mut() {
             use Due::*;
             match due {
@@ -211,6 +254,9 @@ fn update_projectiles(
                     timer.tick(time.delta());
                     if timer.is_finished() {
                         commands.entity(proj_entity).despawn();
+                        if is_friendly {
+                            player.ammo += 1;
+                        }
                     }
                 }
                 BounceDown(count) => { /* nothing */ }
