@@ -58,11 +58,13 @@ fn apply_interaction_palette_on_out(
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
-struct InteractionAssets {
+pub(crate) struct InteractionAssets {
     #[dependency]
     hover: Handle<AudioSource>,
     #[dependency]
     click: Handle<AudioSource>,
+    #[dependency]
+    pub cover: Handle<Image>,
 }
 
 impl FromWorld for InteractionAssets {
@@ -71,6 +73,7 @@ impl FromWorld for InteractionAssets {
         Self {
             hover: assets.load("audio/sound_effects/button_hover.ogg"),
             click: assets.load("audio/sound_effects/button_click.ogg"),
+            cover: assets.load("images/cover.png"),
         }
     }
 }

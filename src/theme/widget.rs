@@ -28,6 +28,22 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     )
 }
 
+pub fn menu_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
+    (
+        Name::new(name),
+        Node {
+            position_type: PositionType::Absolute,
+            width: percent(100),
+            height: percent(100),
+            align_items: AlignItems::Start,
+            justify_content: JustifyContent::Start,
+            flex_direction: FlexDirection::Row,
+            ..default()
+        },
+        Pickable::IGNORE,
+    )
+}
+
 /// A simple header label. Bigger than [`label`].
 pub fn header(text: impl Into<String>) -> impl Bundle {
     (

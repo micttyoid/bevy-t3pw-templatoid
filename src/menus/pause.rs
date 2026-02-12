@@ -2,7 +2,11 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{menus::Menu, screens::Screen, theme::widget};
+use crate::{
+    menus::Menu,
+    screens::Screen,
+    theme::{palette::BACKGROUND_DARK, widget},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Pause), spawn_pause_menu);
@@ -17,12 +21,25 @@ fn spawn_pause_menu(mut commands: Commands) {
         widget::ui_root("Pause Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Pause),
-        children![
-            widget::header("Game paused"),
-            widget::button("Continue", close_menu),
-            widget::button("Settings", open_settings_menu),
-            widget::button("Quit to title", quit_to_title),
-        ],
+        children![(
+            Node {
+                width: percent(40),
+                height: percent(100),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Column,
+                row_gap: px(20),
+                padding: UiRect::all(px(40)),
+                ..default()
+            },
+            BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
+            children![
+                widget::header("Game paused"),
+                widget::button("Continue", close_menu),
+                widget::button("Settings", open_settings_menu),
+                widget::button("Quit to title", quit_to_title),
+            ],
+        )],
     ));
 }
 

@@ -2,31 +2,69 @@
 
 use bevy::prelude::*;
 
-use crate::{asset_tracking::ResourceHandles, menus::Menu, screens::Screen, theme::widget};
+use crate::{
+    asset_tracking::ResourceHandles,
+    menus::Menu,
+    screens::Screen,
+    theme::{
+        interaction::InteractionAssets,
+        palette::{BACKGROUND_DARK, SIDEBAR_BACKGROUND},
+        widget,
+    },
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
 }
 
-fn spawn_main_menu(mut commands: Commands) {
+fn spawn_main_menu(mut commands: Commands, assets: Res<InteractionAssets>) {
     commands.spawn((
-        widget::ui_root("Main Menu"),
+        widget::menu_root("Main Menu"),
         GlobalZIndex(2),
         DespawnOnExit(Menu::Main),
-        #[cfg(not(target_family = "wasm"))]
         children![
-            widget::header("Swapn Maya"),
-            widget::button("Play", enter_loading_or_gameplay_screen),
-            widget::button("Settings", open_settings_menu),
-            widget::button("Credits", open_credits_menu),
-            widget::button("Exit", exit_app),
-        ],
-        #[cfg(target_family = "wasm")]
-        children![
-            widget::header("Swapn Maya"),
-            widget::button("Play", enter_loading_or_gameplay_screen),
-            widget::button("Settings", open_settings_menu),
-            widget::button("Credits", open_credits_menu),
+            (
+                Name::new("Background Image"),
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: percent(100),
+                    height: percent(100),
+                    ..default()
+                },
+                ImageNode {
+                    image: assets.cover.clone(),
+                    ..default()
+                },
+            ),
+            (
+                Name::new("Menu Sidebar"),
+                Node {
+                    width: percent(40),
+                    height: percent(100),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    flex_direction: FlexDirection::Column,
+                    row_gap: px(20),
+                    padding: UiRect::all(px(40)),
+                    ..default()
+                },
+                BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
+                #[cfg(not(target_family = "wasm"))]
+                children![
+                    widget::header("Swapn Maya"),
+                    widget::button("Play", enter_loading_or_gameplay_screen),
+                    widget::button("Settings", open_settings_menu),
+                    widget::button("Credits", open_credits_menu),
+                    widget::button("Exit", exit_app),
+                ],
+                #[cfg(target_family = "wasm")]
+                children![
+                    widget::header("Swapn Maya"),
+                    widget::button("Play", enter_loading_or_gameplay_screen),
+                    widget::button("Settings", open_settings_menu),
+                    widget::button("Credits", open_credits_menu),
+                ],
+            ),
         ],
     ));
 }

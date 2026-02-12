@@ -21,3 +21,4 @@ pub const BUTTON_PRESSED_BACKGROUND: Color = Color::srgb(0.361, 0.157, 0.094);
 pub const BUTTON_BORDER: Color = Color::srgb(0.910, 0.706, 0.290);
 /// #2a1f1a - Very dark brown
 pub const BACKGROUND_DARK: Color = Color::srgb(0.165, 0.122, 0.102);
+pub const SIDEBAR_BACKGROUND: Color = Color::srgb(0.545, 0.180, 0.180);
