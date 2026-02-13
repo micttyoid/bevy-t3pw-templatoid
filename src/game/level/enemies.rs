@@ -266,9 +266,9 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
         ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+            cooldown_timer: Timer::from_seconds(4.0, TimerMode::Repeating),
             shooting_pattern: ShootingPattern::Cross,
-            shooting_range: 300.0,
+            shooting_range: 200.0,
         },
     )
 }
@@ -295,9 +295,9 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::rectangle(50., 50.),
         ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+            cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
             shooting_pattern: ShootingPattern::Triple,
-            shooting_range: 300.0,
+            shooting_range: 100.0,
         },
     )
 }

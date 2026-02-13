@@ -55,11 +55,10 @@ pub fn spawn_tiled_map(
     asset_server: Res<AssetServer>,
 ) {
     let asset_path = match current_level.get() {
-        Level::Foo => "prototype.v5.tile-16x16.tmx",
-        Level::Bar => "map2.tile-16x16.tmx",
-        Level::Baz => "map3.tile-16x16.tmx",
-        Level::Qux => "map4.tile-16x16.tmx",
-        Level::Quux => "map5.tile-16x16.tmx",
+        Level::Gates => "prototype.v5.tile-16x16.tmx",
+        Level::Maya => "map2.tile-16x16.tmx",
+        Level::Mura => "map3.tile-16x16.tmx",
+        Level::Narak => "map4.tile-16x16.tmx",
     };
     commands.spawn((
         TiledMapBundle {

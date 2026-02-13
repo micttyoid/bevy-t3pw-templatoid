@@ -32,11 +32,10 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Reflect)]
 pub enum Level {
     #[default]
-    Foo,
-    Bar,
-    Baz,
-    Qux,
-    Quux,
+    Gates,
+    Maya,
+    Mura,
+    Narak,
 }
 
 impl SubStates for Level {
@@ -58,16 +57,15 @@ impl States for Level {
 impl FreelyMutableState for Level {}
 
 impl Level {
-    pub const LAST_LEVEL: Level = Level::Quux;
+    pub const LAST_LEVEL: Level = Level::Narak;
 
     pub fn next(&self) -> Self {
         use Level::*;
         match self {
-            Foo => Bar,
-            Bar => Baz,
-            Baz => Qux,
-            Qux => Quux,
-            Quux => panic!("No more next level: It is the last level"),
+            Gates => Maya,
+            Maya => Mura,
+            Mura => Narak,
+            Narak => panic!("No more next level: It is the last level"),
         }
     }
 
