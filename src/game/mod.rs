@@ -16,9 +16,46 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         player::plugin,
     ));
+
+    app.add_systems(Update, update_red);
 }
 
-/// [`Player`], [`Mob`], [`Projectile`], [`Source`] or any permutation of them.
-pub trait Thrower {
-    fn throw(&mut self, commands: &mut Commands /* TODO: some more */);
+/// Get red temporarily
+/// Usage: insert it.
+#[derive(Component)]
+pub struct Red(Timer);
+
+impl Default for Red {
+    fn default() -> Self {
+        Self {
+            0: Timer::from_seconds(Self::DEFAULT_DURATION, TimerMode::Once),
+        }
+    }
+}
+
+impl Red {
+    pub const DEFAULT_DURATION: f32 = 1.0;
+    pub const N_BLINKS: usize = 6;
+}
+
+fn update_red(
+    mut commands: Commands,
+    time: Res<Time>,
+    query: Query<(Entity, &mut Sprite, &mut Red)>,
+) {
+    let d = time.delta();
+    for (entity, mut sprite, mut red) in query {
+        let redness = (Red::DEFAULT_DURATION * 2.0 * (Red::N_BLINKS as f32) * red.0.elapsed_secs())
+            .cos()
+            .signum()
+            / 4.0
+            + 0.75; // 0.5 ~ 1.0
+        if red.0.is_finished() {
+            sprite.color = Color::Srgba(Srgba::new(1.0, 1.0, 1.0, 1.0));
+            commands.entity(entity).remove::<Red>();
+        } else {
+            red.0.tick(d);
+            sprite.color = Color::Srgba(Srgba::new(redness, 0.35, 0.35, 1.0));
+        }
+    }
 }

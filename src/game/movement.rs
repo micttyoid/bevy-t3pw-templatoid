@@ -17,6 +17,7 @@ use std::ops::DerefMut;
 use crate::{
     AppSystems, PausableSystems,
     game::{
+        Red,
         animation::*,
         level::{enemies::*, projectiles::*},
         player::*,
@@ -67,7 +68,7 @@ fn on_collision(
     mut commands: Commands,
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy)>,
-    mut player_query: Query<&mut Player>,
+    mut player_query: Query<(Entity, &mut Player)>,
     mut projectile_query: Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
 ) {
     for msg in collision_reader.read() {
@@ -102,19 +103,18 @@ fn on_collision(
 fn on_collision_player(
     commands: &mut Commands,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
-    player_query: &mut Query<&mut Player>,
+    player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
     c1: &Entity,
     c2: &Entity,
     is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is player and c2 is projectile
-    if player_query.contains(*c1) {
+    //if player_query.contains(*c1) {
+    if let Ok((player_entity, mut player)) = player_query.get_mut(*c1) {
         if let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(*c2) {
-            let mut player = player_query
-                .single_mut()
-                .expect("Player does not exist or more than one player");
             if has_hostile {
+                commands.entity(player_entity).insert(Red::default());
                 player.life = player.life.saturating_sub(1);
             }
             commands.entity(proj_entity).despawn();
@@ -131,20 +131,20 @@ fn on_collision_player(
 fn on_collision_enemy(
     commands: &mut Commands,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
-    player_query: &mut Query<&mut Player>,
+    player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
     c1: &Entity,
     c2: &Entity,
     is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is enemy and c2 is projectile
-    if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(*c1) {
+    if let Ok((enemy_entity, mut enemy)) = enemy_query.get_mut(*c1) {
         if let Ok((proj_entity, _, has_friendly, _)) = projectile_query.get(*c2) {
             if has_friendly {
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
-                // only despawning friendly projectiles
                 commands.entity(proj_entity).despawn();
+                commands.entity(enemy_entity).insert(Red::default());
             }
             // nothing for enemy bullet to enemy(drain)
             *is_c2_projectile = Some(true);

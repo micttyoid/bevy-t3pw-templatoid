@@ -172,7 +172,7 @@ impl PreSharedShape {
                 if shared_shape.as_composite_shape().is_some() {
                     panic!("Nested composite shapes are not allowed.");
                 }
-                println!("obj x,y: {} {}", obj.x, obj.y);
+                //println!("obj x,y: {} {}", obj.x, obj.y);
                 compound.push((Isometry2::translation(obj.x, obj.y), shared_shape));
             }
         }
