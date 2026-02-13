@@ -11,7 +11,9 @@ use crate::{
     audio::music,
     game::{
         animation::AnimationAssets,
-        level::enemies::{basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, son_boss},
+        level::enemies::{
+            basic_boss, basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, son_boss,
+        },
         player::player,
     },
     menus::Menu,
@@ -32,6 +34,7 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Reflect)]
 pub enum Level {
     #[default]
+    Tutorial,
     Gates,
     Maya,
     Mura,
@@ -62,6 +65,7 @@ impl Level {
     pub fn next(&self) -> Self {
         use Level::*;
         match self {
+            Tutorial => Gates,
             Gates => Maya,
             Maya => Mura,
             Mura => Narak,
@@ -118,12 +122,23 @@ pub fn spawn_level(
         .id();
     use Level::*;
     match current_level.get() {
+        Tutorial => {
+            commands.entity(lev_entity).insert((children![
+                player(100.0, &anim_assets),
+                basic_boss((0., 220.).into(), &anim_assets),
+                (
+                    Name::new("Gameplay Music"),
+                    DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
+                    music(level_assets.music.clone()),
+                ),
+            ],));
+        }
         Gates => {
             commands.entity(lev_entity).insert((children![
                 player(100.0, &anim_assets),
                 eye_enemy((80., -40.).into(), &anim_assets),
                 eye_enemy((-80., -40.).into(), &anim_assets),
-                gate_boss((0., 120.).into(), &anim_assets),
+                gate_boss((0., 300.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
