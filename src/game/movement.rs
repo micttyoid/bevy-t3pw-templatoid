@@ -62,6 +62,7 @@ impl Default for MovementController {
     }
 }
 
+#[cfg_attr(any(), rustfmt::skip)]
 fn on_collision(
     mut commands: Commands,
     mut collision_reader: MessageReader<CollisionStart>,
@@ -72,47 +73,106 @@ fn on_collision(
     for msg in collision_reader.read() {
         let c1 = msg.collider1;
         let c2 = msg.collider2;
-        if let Ok((proj_entity, mut projectile, has_friendly, _)) = projectile_query.get_mut(c1) {
-            if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(c2)
-                && has_friendly
-            {
-                // Enemy got hit!
-                enemy.life = enemy.life.saturating_sub(1);
-                commands.entity(proj_entity).despawn();
-            } else if !player_query.contains(c1) {
-                // This part getting smelly
-                // Something else! (neither enemy nor player)
-                for due in projectile.dues.iter_mut() {
-                    match due {
-                        Due::BounceDown(count) => {
-                            match count {
-                                1 => {
-                                    // This goes to zero: remove and restore
-                                    commands.entity(proj_entity).despawn();
-                                }
-                                0 => {
-                                    //panic!("Bounce Down was not set correctly");
-                                    commands.entity(proj_entity).despawn(); // should not happen
-                                }
-                                _ => {
-                                    *count = count.saturating_sub(1);
-                                }
-                            }
+
+        // player/enemy with projectile
+        if on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2) 
+        || on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1)
+        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2) 
+        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1) {
+            continue;
+        }
+
+        // not really optimal by this, but i like it
+        match (projectile_query.contains(c1), projectile_query.contains(c2)) {
+            (true, true) => {/* projectile vs projectile */}
+            (true, false) => {
+                on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c1);
+            }
+            (false, true) => {
+                on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c2);
+            }
+            (false, false) => {/* else vs else */}
+        }
+    }
+}
+
+// return is_continue
+fn on_collision_player(
+    commands: &mut Commands,
+    enemy_query: &mut Query<(Entity, &mut Enemy)>,
+    player_query: &mut Query<&mut Player>,
+    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    c1: &Entity,
+    c2: &Entity,
+) -> bool {
+    // c1 is player and c2 is projectile
+    if player_query.contains(*c1)
+        && let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(*c2)
+    {
+        let mut player = player_query
+            .single_mut()
+            .expect("Player does not exist or more than one player");
+        if has_hostile {
+            player.life = player.life.saturating_sub(1);
+        }
+        commands.entity(proj_entity).despawn();
+        return true;
+    }
+    false
+}
+
+// return is_continue
+fn on_collision_enemy(
+    commands: &mut Commands,
+    enemy_query: &mut Query<(Entity, &mut Enemy)>,
+    player_query: &mut Query<&mut Player>,
+    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    c1: &Entity,
+    c2: &Entity,
+) -> bool {
+    // c1 is enemy and c2 is projectile
+    if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(*c1)
+        && let Ok((proj_entity, _, has_friendly, _)) = projectile_query.get(*c2)
+    {
+        if has_friendly {
+            // Enemy got hit!
+            enemy.life = enemy.life.saturating_sub(1);
+            commands.entity(proj_entity).despawn();
+        }
+        // nothing for enemy bullet to enemy
+        return true;
+    }
+    false
+    // NOTE: nothing for enemy-to-enemy collision
+}
+
+fn on_collision_projectile_with_something_else(
+    commands: &mut Commands,
+    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    c1: &Entity,
+) {
+    if let Ok((proj_entity, mut projectile, has_friendly, _)) = projectile_query.get_mut(*c1) {
+        // This part getting smelly
+        // Something else! (neither enemy nor player)
+        for due in projectile.dues.iter_mut() {
+            match due {
+                Due::BounceDown(count) => {
+                    match count {
+                        1 => {
+                            // This goes to zero: remove and restore
+                            commands.entity(proj_entity).despawn();
                         }
-                        _ => {}
+                        0 => {
+                            //panic!("Bounce Down was not set correctly");
+                            commands.entity(proj_entity).despawn(); // should not happen
+                        }
+                        _ => {
+                            *count = count.saturating_sub(1);
+                        }
                     }
                 }
+                _ => {}
             }
-        } else if player_query.contains(c1)
-            && let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(c2)
-        {
-            let mut player = player_query
-                .single_mut()
-                .expect("Player does not exist or more than one player");
-            if has_hostile {
-                player.life = player.life.saturating_sub(1);
-            }
-            commands.entity(proj_entity).despawn();
         }
     }
 }
