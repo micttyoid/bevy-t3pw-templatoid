@@ -241,7 +241,11 @@ pub fn lifespan_projectile<HostilityComponent: Component + Default>(
         HostilityComponent::default(),
         LinearVelocity(speed * direction.as_vec2()),
         LinearDamping(0.0),
-        //Sprite::default(),
+        Sprite {
+            image: anim_assets.enemies.bullet.clone(),
+            custom_size: Some(Vec2::new(8.0, 8.0)),
+            ..default()
+        },
         ScreenWrap,
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),

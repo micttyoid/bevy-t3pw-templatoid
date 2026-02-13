@@ -47,7 +47,7 @@ enum UiIconAtlas {
     AmmoEmpty = 3,
 }
 
-const ICON_SIZE: f32 = 16.0;
+const ICON_SIZE: f32 = 32.0;
 const ICON_SPACING: f32 = 8.0;
 
 /// Spawns the gameplay UI showing player health and ammo and switches mouse cursor to aim
@@ -58,7 +58,7 @@ pub fn spawn_gameplay_ui(
     player_query: Query<&Player>,
     window: Single<Entity, With<Window>>,
 ) {
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 2, 2, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 2, 2, None, None);
     let layout_handle = texture_atlas_layouts.add(layout);
 
     let (max_hearts, max_ammo) = if let Ok(player) = player_query.single() {
@@ -78,16 +78,13 @@ pub fn spawn_gameplay_ui(
             flex_direction: FlexDirection::Column,
             row_gap: Val::Px(12.0),
             padding: UiRect::all(Val::Px(16.0)),
-            border_radius: BorderRadius::all(Val::Px(8.0)),
             ..default()
         },
-        BackgroundColor(GAMEPLAY_UI_BACKGROUND.with_alpha(0.5)),
         DespawnOnExit(Screen::Gameplay),
     ))
     .with_children(|ui| {
         ui.spawn(stat_container("Hearts Container"))
             .with_children(|ui| {
-                ui.spawn(widget::label("Health"));
                 for i in 0..max_hearts {
                     ui.spawn((
                         HeartIcon { index: i },
@@ -108,7 +105,6 @@ pub fn spawn_gameplay_ui(
             });
         ui.spawn(stat_container("Ammo Container"))
             .with_children(|ui| {
-                ui.spawn(widget::label("Ammo "));
                 for i in 0..max_ammo {
                     ui.spawn((
                         Name::new(format!("Ammo {}", i)),

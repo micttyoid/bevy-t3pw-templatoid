@@ -122,6 +122,7 @@ pub struct EnemyAssets {
     pub eye_enemy: Handle<Aseprite>,
     pub boss1: Handle<Aseprite>,
     pub boss2: Handle<Aseprite>,
+    pub bullet: Handle<Image>,
 }
 
 fn check_enemy_death(
