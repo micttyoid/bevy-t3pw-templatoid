@@ -131,42 +131,50 @@ impl FromWorld for AnimationAssets {
                 // boss1
                 gates: GatesAssets {
                     aseprite: assets.load("textures/chars/boss1.aseprite"),
-                    damages: vec![
-                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
-                    ],
+                    attacks: vec![],
+                    damages: vec![],
                 },
                 // boss2
                 maya: MayaAssets {
                     aseprite: assets.load("textures/chars/boss2.aseprite"),
-                    damages: vec![
-                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    attacks: vec![
+                        assets.load("audio/sound_effects/maya/att1.ogg"),
+                        assets.load("audio/sound_effects/maya/att2.ogg"),
+                        assets.load("audio/sound_effects/maya/att3.ogg"),
+                        assets.load("audio/sound_effects/maya/att4.ogg"),
                     ],
+                    damages: vec![
+                        assets.load("audio/sound_effects/maya/dmg1.ogg"),
+                        assets.load("audio/sound_effects/maya/dmg2.ogg"),
+                        assets.load("audio/sound_effects/maya/dmg3.ogg"),
+                        assets.load("audio/sound_effects/maya/dmg4.ogg"),
+                    ],
+                    grunts: vec![
+                        assets.load("audio/sound_effects/maya/grunt1.ogg"),
+                        assets.load("audio/sound_effects/maya/grunt2.ogg"),
+                        assets.load("audio/sound_effects/maya/grunt3.ogg"),
+                    ],
+                    intro: assets.load("audio/sound_effects/maya/intro.ogg"),
                 },
                 // boss3
                 mura: MuraAssets {
                     aseprite: assets.load("textures/chars/boss3.aseprite"),
-                    damages: vec![
-                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    attacks: vec![
+                        assets.load("audio/sound_effects/mura/att1.ogg"),
+                        assets.load("audio/sound_effects/mura/att2.ogg"),
                     ],
+                    damages: vec![
+                        assets.load("audio/sound_effects/mura/dmg1.ogg"),
+                        assets.load("audio/sound_effects/mura/dmg2.ogg"),
+                        assets.load("audio/sound_effects/mura/dmg3.ogg"),
+                    ],
+                    idle: assets.load("audio/sound_effects/mura/idle.ogg"),
                 },
                 // boss4
                 narak: NarakAssets {
                     aseprite: assets.load("textures/chars/boss4.aseprite"),
-                    damages: vec![
-                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
-                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
-                    ],
+                    attacks: vec![],
+                    damages: vec![],
                 },
                 bullet: assets.load("textures/props/bullet.png"),
             },
