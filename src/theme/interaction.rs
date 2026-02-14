@@ -64,6 +64,8 @@ pub(crate) struct InteractionAssets {
     #[dependency]
     click: Handle<AudioSource>,
     #[dependency]
+    pub pause: Handle<AudioSource>,
+    #[dependency]
     pub cover: Handle<Image>,
 }
 
@@ -72,7 +74,9 @@ impl FromWorld for InteractionAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             hover: assets.load("audio/sound_effects/button_hover.ogg"),
-            click: assets.load("audio/sound_effects/button_click.ogg"),
+            //click: assets.load("audio/sound_effects/button_click.ogg"),
+            click: assets.load("audio/sound_effects/ui/button-1.ogg"),
+            pause: assets.load("audio/sound_effects/ui/pause.ogg"),
             cover: assets.load("images/cover.png"),
         }
     }

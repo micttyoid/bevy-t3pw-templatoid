@@ -247,7 +247,7 @@ fn enemy_shooting_system(
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
     mut enemy_query: Query<(&Transform, &mut Enemy), Without<Player>>,
-    anim_assets: Res<AnimationAssets>,
+    anim_assets: If<Res<AnimationAssets>>,
 ) {
     let Ok(player_transform) = player_query.single() else {
         return; // No player, don't shoot

@@ -8,6 +8,7 @@ use bevy_aseprite_ultra::prelude::{AseAnimation, ManualTick};
 
 use crate::{
     Pause,
+    audio::sound_effect,
     game::{
         level::{
             Level,
@@ -18,6 +19,7 @@ use crate::{
     },
     menus::Menu,
     screens::Screen,
+    theme::interaction::InteractionAssets,
     utils::tiled::spawn_tiled_map,
 };
 
@@ -97,7 +99,9 @@ fn check_boss_and_player(
 struct LastCleared(usize);
 
 fn unpause(
+    mut commands: Commands,
     mut next_pause: ResMut<NextState<Pause>>,
+    interaction_assets: If<Res<InteractionAssets>>,
     mut time: ResMut<Time<Physics>>,
     mut cmd: Commands,
     query: Query<Entity, With<AseAnimation>>,
@@ -109,10 +113,13 @@ fn unpause(
     for entity in &query {
         cmd.entity(entity).remove::<ManualTick>();
     }
+    commands.spawn(sound_effect(interaction_assets.pause.clone()));
 }
 
 fn pause(
+    mut commands: Commands,
     mut next_pause: ResMut<NextState<Pause>>,
+    interaction_assets: If<Res<InteractionAssets>>,
     mut time: ResMut<Time<Physics>>,
     mut cmd: Commands,
     query: Query<Entity, With<AseAnimation>>,
@@ -124,6 +131,7 @@ fn pause(
     for entity in &query {
         cmd.entity(entity).insert(ManualTick);
     }
+    commands.spawn(sound_effect(interaction_assets.pause.clone()));
 }
 
 fn spawn_pause_overlay(mut commands: Commands) {
