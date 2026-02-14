@@ -15,6 +15,7 @@ use crate::{
         player::{PLAYER_Z_TRANSLATION, Player},
     },
     screens::gameplay::GameplayLifetime,
+    utils::safe_dir,
 };
 
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
@@ -176,7 +177,7 @@ fn check_enemy_death(
 pub struct EnemyAttack {
     pub cooldown_timer: Timer,
     pub duration: Timer,
-    pub shooting_pattern: ShootingPattern,
+    pub shooting_pattern: Vec<ShootingPattern>,
 }
 
 #[derive(Debug, Clone)]
@@ -221,7 +222,10 @@ fn enemy_shooting_system(
                 let enemy_pos = enemy_transform.translation.xy();
                 let enemy_radius = 12.0; // Should match enemy collider radius
                 let dir = (player_pos - enemy_pos).normalize();
-                let directions = get_shooting_patterns(dir, &current_attack.shooting_pattern);
+                let mut directions = Vec::new();
+                for pattern in &current_attack.shooting_pattern {
+                    directions.extend(get_shooting_patterns(dir, pattern));
+                }
                 for direction in directions {
                     cmd.spawn(enemy_basic_bullet::<Hostile>(
                         enemy_pos,
@@ -240,31 +244,24 @@ fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
     let base = Dir2::new(dir).unwrap_or(Dir2::NEG_Y);
     let perp = dir.perp();
     match pattern {
-        ShootingPattern::Straight => {
-            vec![base]
+        ShootingPattern::Straight => vec![base],
+        ShootingPattern::Triple =>
+        // 3 bullets 10-degree angle
+        {
+            [-10.0_f32.to_radians(), 0.0, 10.0_f32.to_radians()]
+                .iter()
+                .map(|&angle| safe_dir(dir.rotate(Vec2::from_angle(angle))))
+                .collect()
         }
-        ShootingPattern::Triple => {
-            let rhs = dir.rotate(Vec2::from_angle(10.0_f32.to_radians()));
-            let lhs = dir.rotate(Vec2::from_angle(-10.0_f32.to_radians()));
-            vec![
-                base,
-                Dir2::new(rhs).unwrap_or(Dir2::Y),
-                Dir2::new(lhs).unwrap_or(Dir2::Y),
-            ]
+        ShootingPattern::Cross =>
+        // 4 bullets at 90-degree intervals
+        {
+            [dir, perp, -perp, -dir].into_iter().map(safe_dir).collect()
         }
-        ShootingPattern::Cross => {
-            // 4 bullets at 90-degree intervals
-            vec![
-                base,
-                Dir2::new(perp).unwrap_or(Dir2::Y),
-                Dir2::new(-perp).unwrap_or(Dir2::NEG_Y),
-                Dir2::new(-dir).unwrap_or(Dir2::Y),
-            ]
-        }
-        ShootingPattern::Spread => {
-            // 5 bullets spread across 90 degrees (-45 to +45)
-            let angles = [-PI / 4.0, -PI / 8.0, 0.0, PI / 8.0, PI / 4.0];
-            angles
+        ShootingPattern::Spread =>
+        // 5 bullets spread across 90 degrees (-45 to +45)
+        {
+            [-PI / 4.0, -PI / 8.0, 0.0, PI / 8.0, PI / 4.0]
                 .iter()
                 .map(|&angle| {
                     let rotated = dir.rotate(Vec2::from_angle(angle));
@@ -272,19 +269,22 @@ fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
                 })
                 .collect()
         }
-        ShootingPattern::Octagon => {
-            let diag1 = dir.rotate(Vec2::from_angle(PI / 4.0));
-            let diag2 = dir.rotate(Vec2::from_angle(-PI / 4.0));
-            vec![
-                base,
-                Dir2::new(perp).unwrap_or(Dir2::X),
-                Dir2::new(-dir).unwrap_or(Dir2::NEG_Y),
-                Dir2::new(-perp).unwrap_or(Dir2::NEG_X),
-                Dir2::new(diag1).unwrap_or(Dir2::Y),
-                Dir2::new(diag2).unwrap_or(Dir2::Y),
-                Dir2::new(-diag1).unwrap_or(Dir2::NEG_Y),
-                Dir2::new(-diag2).unwrap_or(Dir2::NEG_Y),
+        ShootingPattern::Octagon =>
+        // 8 bullets(when paired with straight) in an octagon
+        {
+            [
+                0.0,
+                PI / 4.0,
+                PI / 2.0,
+                3.0 * PI / 4.0,
+                PI,
+                -3.0 * PI / 4.0,
+                -PI / 2.0,
+                -PI / 4.0,
             ]
+            .iter()
+            .map(|&angle| safe_dir(dir.rotate(Vec2::from_angle(angle))))
+            .collect()
         }
     }
 }
@@ -320,13 +320,13 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: ShootingPattern::Straight,
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Cross, ShootingPattern::Triple],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
                 duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: ShootingPattern::Spread,
+                shooting_pattern: vec![ShootingPattern::Octagon],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
