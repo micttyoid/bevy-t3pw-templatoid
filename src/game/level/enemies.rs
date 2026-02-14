@@ -197,6 +197,8 @@ pub struct NarakAssets {
     pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub death: Handle<AudioSource>,
 }
 
 fn check_enemy_death(

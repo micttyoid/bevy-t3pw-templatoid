@@ -173,8 +173,16 @@ impl FromWorld for AnimationAssets {
                 // boss4
                 narak: NarakAssets {
                     aseprite: assets.load("textures/chars/boss4.aseprite"),
-                    attacks: vec![],
-                    damages: vec![],
+                    attacks: vec![
+                        assets.load("audio/sound_effects/narak/att1.ogg"),
+                        assets.load("audio/sound_effects/narak/att2.ogg"),
+                    ],
+                    damages: vec![
+                        assets.load("audio/sound_effects/narak/dmg1.ogg"),
+                        assets.load("audio/sound_effects/narak/dmg2.ogg"),
+                        assets.load("audio/sound_effects/narak/dmg3.ogg"),
+                    ],
+                    death: assets.load("audio/sound_effects/narak/death.ogg"),
                 },
                 bullet: assets.load("textures/props/bullet.png"),
             },
