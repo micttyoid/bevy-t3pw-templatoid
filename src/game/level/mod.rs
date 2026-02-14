@@ -91,6 +91,10 @@ pub struct LevelAssets {
     ui_assets: Handle<Image>,
     #[dependency]
     aim_cursor: Handle<Image>,
+    #[dependency]
+    pub tutorial_assets: Handle<Image>,
+    #[dependency]
+    pub level_font: Handle<Font>,
 }
 
 impl FromWorld for LevelAssets {
@@ -100,6 +104,8 @@ impl FromWorld for LevelAssets {
             music: assets.load("audio/music/Fluffing A Duck.ogg"),
             ui_assets: assets.load("textures/props/gameplay_ui.png"),
             aim_cursor: assets.load("textures/props/cursor.png"),
+            tutorial_assets: assets.load("textures/props/keyboard.png"),
+            level_font: assets.load("fonts/boldspixels.ttf"),
         }
     }
 }
