@@ -183,12 +183,13 @@ pub struct EnemyAttack {
 #[derive(Debug, Clone)]
 pub enum ShootingPattern {
     Straight,
-    Triple,
-    Cross,
-    Spread,
-    Octagon,
+    Spread { count: usize, arc: f32 },
+    Ring { count: usize },
+    Flank { angle: f32 },
+    Random { count: usize, arc: f32 },
 }
 
+// maybe simplify this later
 fn enemy_shooting_system(
     mut cmd: Commands,
     time: Res<Time>,
@@ -241,50 +242,52 @@ fn enemy_shooting_system(
 
 /// Shooting Patterns
 fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
-    let base = Dir2::new(dir).unwrap_or(Dir2::NEG_Y);
-    let perp = dir.perp();
+    let base_angle = dir.to_angle();
     match pattern {
-        ShootingPattern::Straight => vec![base],
-        ShootingPattern::Triple =>
-        // 3 bullets 10-degree angle
-        {
-            [-10.0_f32.to_radians(), 0.0, 10.0_f32.to_radians()]
-                .iter()
-                .map(|&angle| safe_dir(dir.rotate(Vec2::from_angle(angle))))
-                .collect()
+        ShootingPattern::Straight => vec![safe_dir(dir)],
+        ShootingPattern::Spread { count, arc } => {
+            if *count <= 1 {
+                return vec![safe_dir(dir)];
+            }
+            let mut dirs = Vec::with_capacity(*count);
+            let half_arc = arc / 2.0;
+            // The step size between each bullet
+            let step = arc / (*count as f32 - 1.0);
+
+            for i in 0..*count {
+                // Calculate offset: start from -half_arc and add step
+                let angle_offset = -half_arc + (step * i as f32);
+                let new_dir = Vec2::from_angle(base_angle + angle_offset);
+                dirs.push(safe_dir(new_dir));
+            }
+            dirs
         }
-        ShootingPattern::Cross =>
-        // 4 bullets at 90-degree intervals
-        {
-            [dir, perp, -perp, -dir].into_iter().map(safe_dir).collect()
+        ShootingPattern::Ring { count } => {
+            let mut dirs = Vec::with_capacity(*count);
+            let step = TAU / *count as f32;
+
+            for i in 0..*count {
+                let angle = base_angle + (step * i as f32);
+                dirs.push(safe_dir(Vec2::from_angle(angle)));
+            }
+            dirs
         }
-        ShootingPattern::Spread =>
-        // 5 bullets spread across 90 degrees (-45 to +45)
-        {
-            [-PI / 4.0, -PI / 8.0, 0.0, PI / 8.0, PI / 4.0]
-                .iter()
-                .map(|&angle| {
-                    let rotated = dir.rotate(Vec2::from_angle(angle));
-                    Dir2::new(rotated).unwrap_or(Dir2::Y)
-                })
-                .collect()
-        }
-        ShootingPattern::Octagon =>
-        // 8 bullets(when paired with straight) in an octagon
-        {
-            [
-                0.0,
-                PI / 4.0,
-                PI / 2.0,
-                3.0 * PI / 4.0,
-                PI,
-                -3.0 * PI / 4.0,
-                -PI / 2.0,
-                -PI / 4.0,
+        ShootingPattern::Flank { angle } => {
+            vec![
+                safe_dir(Vec2::from_angle(base_angle - angle)),
+                safe_dir(Vec2::from_angle(base_angle + angle)),
             ]
-            .iter()
-            .map(|&angle| safe_dir(dir.rotate(Vec2::from_angle(angle))))
-            .collect()
+        }
+        ShootingPattern::Random { count, arc } => {
+            let mut rng = rand::rng();
+            let mut dirs = Vec::with_capacity(*count);
+            let half_arc = arc / 2.0;
+            for _ in 0..*count {
+                // Random offset between -half and +half
+                let offset = rng.random_range(-half_arc..=half_arc);
+                dirs.push(safe_dir(Vec2::from_angle(base_angle + offset)));
+            }
+            dirs
         }
     }
 }
@@ -321,12 +324,25 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Cross, ShootingPattern::Triple],
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
                 duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Octagon],
+                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Random {
+                    count: 9,
+                    arc: 90.0_f32.to_radians(),
+                }],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
