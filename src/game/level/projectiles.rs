@@ -4,12 +4,7 @@ use bevy_aseprite_ultra::prelude::{Animation, AnimationDirection, AnimationRepea
 
 use crate::{
     PausableSystems,
-    game::{
-        animation::*,
-        level::enemies::{basic_boss, basic_enemy},
-        movement::*,
-        player::*,
-    },
+    game::{animation::*, movement::*, player::*},
     screens::gameplay::GameplayLifetime,
 };
 
@@ -145,6 +140,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
     direction: Dir2,
     thrower_radius: f32,
     anim_assets: &AnimationAssets,
+    color: Color,
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 2.;
     let projectile_life: f32 = 3.0; // seconds
@@ -166,6 +162,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
         Sprite {
             image: anim_assets.enemies.bullet.clone(),
             custom_size: Some(Vec2::new(8.0, 8.0)),
+            color,
             ..default()
         },
         ScreenWrap,

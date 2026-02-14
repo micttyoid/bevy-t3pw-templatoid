@@ -1,7 +1,4 @@
-use avian2d::{
-    math::{PI, TAU},
-    prelude::*,
-};
+use avian2d::{math::TAU, prelude::*};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use rand::Rng;
@@ -228,11 +225,19 @@ fn enemy_shooting_system(
                     directions.extend(get_shooting_patterns(dir, pattern));
                 }
                 for direction in directions {
+                    // Generate a random color for each bullet
+                    let mut rng = rand::rng();
+                    let random_color = Color::srgb(
+                        rng.random_range(0.3..=1.0),
+                        rng.random_range(0.3..=1.0),
+                        rng.random_range(0.3..=1.0),
+                    );
                     cmd.spawn(enemy_basic_bullet::<Hostile>(
                         enemy_pos,
                         direction,
                         enemy_radius,
                         &anim_assets,
+                        random_color,
                     ));
                 }
             }

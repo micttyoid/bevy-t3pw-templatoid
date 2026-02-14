@@ -80,7 +80,7 @@ pub fn spawn_gameplay_ui(
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
-        DespawnOnEnter(Menu::Credits),
+        DespawnOnEnter(Menu::Credits), // credits menu switches to gameplay - hence this needs to be handled
     ))
     .with_children(|ui| {
         ui.spawn(stat_container("Hearts Container"))
