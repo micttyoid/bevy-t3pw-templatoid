@@ -137,15 +137,52 @@ impl Enemy {
 
 #[derive(Asset, Clone, Reflect)]
 pub struct EnemyAssets {
-    pub aseprite: Handle<Aseprite>,
-    pub eye_enemy: Handle<Aseprite>,
-    pub boss1: Handle<Aseprite>,
-    pub boss2: Handle<Aseprite>,
-    pub boss3: Handle<Aseprite>,
-    pub boss4: Handle<Aseprite>,
+    pub seedlng_aseprite: Handle<Aseprite>,
+    pub eye_enemy: EyeEnemyAssets,
+    pub gates: GatesAssets, // boss1
+    pub maya: MayaAssets,   // boss2
+    pub mura: MuraAssets,   // boss3
+    pub narak: NarakAssets, // boss4
     pub bullet: Handle<Image>,
+}
+
+#[derive(Asset, Clone, Reflect)]
+pub struct EyeEnemyAssets {
+    pub aseprite: Handle<Aseprite>,
     #[dependency]
-    pub eye_enemy_damages: Vec<Handle<AudioSource>>,
+    pub damages: Vec<Handle<AudioSource>>,
+}
+
+// boss1
+#[derive(Asset, Clone, Reflect)]
+pub struct GatesAssets {
+    pub aseprite: Handle<Aseprite>,
+    #[dependency]
+    pub damages: Vec<Handle<AudioSource>>,
+}
+
+// boss2
+#[derive(Asset, Clone, Reflect)]
+pub struct MayaAssets {
+    pub aseprite: Handle<Aseprite>,
+    #[dependency]
+    pub damages: Vec<Handle<AudioSource>>,
+}
+
+// boss3
+#[derive(Asset, Clone, Reflect)]
+pub struct MuraAssets {
+    pub aseprite: Handle<Aseprite>,
+    #[dependency]
+    pub damages: Vec<Handle<AudioSource>>,
+}
+
+// boss4
+#[derive(Asset, Clone, Reflect)]
+pub struct NarakAssets {
+    pub aseprite: Handle<Aseprite>,
+    #[dependency]
+    pub damages: Vec<Handle<AudioSource>>,
 }
 
 fn check_enemy_death(
@@ -310,7 +347,7 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.aseprite.clone(),
+            aseprite: anim_assets.enemies.seedlng_aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -356,7 +393,7 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.eye_enemy.clone(),
+            aseprite: anim_assets.enemies.eye_enemy.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -379,7 +416,7 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.boss1.clone(),
+            aseprite: anim_assets.enemies.gates.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -404,7 +441,7 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.boss2.clone(),
+            aseprite: anim_assets.enemies.maya.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -429,7 +466,7 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.boss3.clone(),
+            aseprite: anim_assets.enemies.mura.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -454,7 +491,7 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.boss4.clone(),
+            aseprite: anim_assets.enemies.narak.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -479,7 +516,7 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(2.0),
-            aseprite: anim_assets.enemies.aseprite.clone(),
+            aseprite: anim_assets.enemies.seedlng_aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,

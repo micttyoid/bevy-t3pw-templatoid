@@ -160,7 +160,8 @@ fn on_collision_enemy(
                 commands.spawn(sound_effect(
                     anim_assets
                         .enemies
-                        .eye_enemy_damages
+                        .eye_enemy
+                        .damages
                         .choose(&mut rand::rng())
                         .unwrap()
                         .clone(),

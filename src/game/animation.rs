@@ -12,7 +12,9 @@ use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
     game::{
-        level::enemies::EnemyAssets,
+        level::enemies::{
+            EnemyAssets, EyeEnemyAssets, GatesAssets, MayaAssets, MuraAssets, NarakAssets,
+        },
         player::{Player, PlayerAssets},
     },
 };
@@ -116,18 +118,56 @@ impl FromWorld for AnimationAssets {
                 chakram: assets.load("textures/props/chakram.aseprite"),
             },
             enemies: EnemyAssets {
-                aseprite: assets.load("textures/chars/seedling.aseprite"),
-                eye_enemy: assets.load("textures/chars/eye-enemy.aseprite"),
-                eye_enemy_damages: vec![
-                    assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
-                    assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
-                    assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
-                    assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
-                ],
-                boss1: assets.load("textures/chars/boss1.aseprite"),
-                boss2: assets.load("textures/chars/boss2.aseprite"),
-                boss3: assets.load("textures/chars/boss3.aseprite"),
-                boss4: assets.load("textures/chars/boss4.aseprite"),
+                seedlng_aseprite: assets.load("textures/chars/seedling.aseprite"),
+                eye_enemy: EyeEnemyAssets {
+                    aseprite: assets.load("textures/chars/eye-enemy.aseprite"),
+                    damages: vec![
+                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    ],
+                },
+                // boss1
+                gates: GatesAssets {
+                    aseprite: assets.load("textures/chars/boss1.aseprite"),
+                    damages: vec![
+                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    ],
+                },
+                // boss2
+                maya: MayaAssets {
+                    aseprite: assets.load("textures/chars/boss2.aseprite"),
+                    damages: vec![
+                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    ],
+                },
+                // boss3
+                mura: MuraAssets {
+                    aseprite: assets.load("textures/chars/boss3.aseprite"),
+                    damages: vec![
+                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    ],
+                },
+                // boss4
+                narak: NarakAssets {
+                    aseprite: assets.load("textures/chars/boss4.aseprite"),
+                    damages: vec![
+                        assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                        assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                    ],
+                },
                 bullet: assets.load("textures/props/bullet.png"),
             },
         }
