@@ -16,7 +16,6 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         player::plugin,
     ));
-
     app.add_systems(Update, update_red);
 }
 
@@ -38,6 +37,8 @@ impl Red {
     pub const N_BLINKS: usize = 6;
 }
 
+// It could be efficient if this goes more discrete, not over frames, but that's only for such type of color trasition
+// You can also use smooth functions instead (for such color transition) and this works better.
 fn update_red(
     mut commands: Commands,
     time: Res<Time>,

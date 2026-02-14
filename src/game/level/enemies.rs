@@ -158,6 +158,8 @@ pub struct EyeEnemyAssets {
 pub struct GatesAssets {
     pub aseprite: Handle<Aseprite>,
     #[dependency]
+    pub attacks: Vec<Handle<AudioSource>>,
+    #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
 }
 
@@ -166,7 +168,13 @@ pub struct GatesAssets {
 pub struct MayaAssets {
     pub aseprite: Handle<Aseprite>,
     #[dependency]
+    pub attacks: Vec<Handle<AudioSource>>,
+    #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub grunts: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub intro: Handle<AudioSource>,
 }
 
 // boss3
@@ -174,13 +182,19 @@ pub struct MayaAssets {
 pub struct MuraAssets {
     pub aseprite: Handle<Aseprite>,
     #[dependency]
+    pub attacks: Vec<Handle<AudioSource>>,
+    #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub idle: Handle<AudioSource>,
 }
 
 // boss4
 #[derive(Asset, Clone, Reflect)]
 pub struct NarakAssets {
     pub aseprite: Handle<Aseprite>,
+    #[dependency]
+    pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
 }
