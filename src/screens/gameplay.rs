@@ -10,7 +10,7 @@ use crate::{
     Pause,
     audio::sound_effect,
     game::{
-        level::{Level, bosses::Boss, enemies::Enemy, spawn_level},
+        level::{Level, bosses::Boss, enemies::Enemy, sfx_intro, spawn_level},
         player::*,
     },
     menus::Menu,
@@ -26,7 +26,7 @@ pub struct GameplayLifetime;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Gameplay),
-        (spawn_tiled_map, spawn_level).chain(),
+        (spawn_tiled_map, spawn_level, sfx_intro).chain(),
     );
 
     app.add_systems(

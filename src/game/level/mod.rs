@@ -10,6 +10,7 @@ use bevy::{prelude::*, state::state::FreelyMutableState};
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
+    audio::sound_effect,
     game::{
         animation::AnimationAssets,
         level::{
@@ -126,6 +127,20 @@ impl FromWorld for LevelAssets {
             tutorial_assets: assets.load("textures/props/keyboard.png"),
             level_font: assets.load("fonts/boldspixels.ttf"),
         }
+    }
+}
+
+pub fn sfx_intro(
+    mut commands: Commands,
+    current_level: Res<State<Level>>,
+    anim_assets: Res<AnimationAssets>,
+) {
+    use Level::*;
+    match current_level.get() {
+        Mura => {
+            commands.spawn(sound_effect(anim_assets.enemies.mura.intro.clone()));
+        }
+        _ => {}
     }
 }
 
