@@ -73,7 +73,7 @@ impl Level {
     pub fn next(&self) -> Self {
         use Level::*;
         match self {
-            Tutorial => Gates,
+            Tutorial => Narak,
             Gates => Maya,
             Maya => Mura,
             Mura => Narak,
