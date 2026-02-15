@@ -66,7 +66,7 @@ impl Level {
     pub fn next(&self) -> Self {
         use Level::*;
         match self {
-            Tutorial => Gates,
+            Tutorial => Narak,
             Gates => Maya,
             Maya => Mura,
             Mura => Narak,
@@ -160,7 +160,7 @@ pub fn spawn_level(
                 (
                     Name::new("Tutorial Text"),
                     Text2d::new(
-                        "Aim & Attack to Kill Boss\n and Proceed to Next Level".to_string()
+                        "Aim & Attack to Kill Enemies\n     Fulfill your Dharma".to_string()
                     ),
                     TextFont {
                         font: level_assets.level_font.clone(),
@@ -240,7 +240,7 @@ pub fn spawn_level(
                 ),
                 basic_enemy((-70., 20.).into(), &anim_assets),
                 basic_enemy((-60., 0.).into(), &anim_assets),
-                son_boss((140., 40.).into(), &anim_assets),
+                son_boss((0., 400.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),

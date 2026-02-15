@@ -1,7 +1,7 @@
 use avian2d::{math::TAU, prelude::*};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
-use rand::Rng;
+use rand::{Rng, seq::IndexedRandom};
 
 use crate::{
     PausableSystems,
@@ -20,7 +20,14 @@ pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (check_enemy_death, update_moves, enemy_shooting_system).in_set(PausableSystems),
+        (
+            check_enemy_death,
+            update_moves,
+            update_boss_moves,
+            enemy_shooting_system,
+            boss_teleport_system,
+        )
+            .in_set(PausableSystems),
     );
 }
 
@@ -43,6 +50,32 @@ pub struct Enemy {
 fn update_moves(
     time: Res<Time>,
     enemy_query: Query<(&mut LinearVelocity, &mut Enemy), Without<Boss>>,
+) {
+    let d = time.delta();
+    for (mut velocity, mut enemy) in enemy_query {
+        let mut is_pop = false;
+        if let Some(m) = enemy.moves.last_mut() {
+            match m {
+                Move::UnitVelocity(v, timer) => {
+                    if timer.is_finished() {
+                        is_pop = true;
+                        *velocity = LinearVelocity::ZERO;
+                    } else {
+                        timer.tick(d);
+                        *velocity = *v;
+                    }
+                } //_ => {},
+            }
+        } else {
+            enemy.random_linear_moves(); // refill
+        }
+        enemy.moves.pop_if(|_| is_pop);
+    }
+}
+
+fn update_boss_moves(
+    time: Res<Time>,
+    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), With<Boss>>,
 ) {
     let d = time.delta();
     for (mut velocity, mut enemy) in enemy_query {
@@ -557,6 +590,14 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::circle(basic_enemy_collision_radius),
+        TeleportAbility {
+            positions: vec![
+                Vec2::new(xy.x, xy.y),
+                Vec2::new(100.0, 100.0),
+                Vec2::new(200.0, 200.0),
+            ],
+            timer: Timer::from_seconds(3.0, TimerMode::Repeating),
+        },
     )
 }
 
@@ -592,4 +633,25 @@ pub enum Move {
     // UnitWeirdMotion,
     // UnitDance,
     // UnitPathfinding,
+}
+
+#[derive(Component)]
+pub struct TeleportAbility {
+    pub positions: Vec<Vec2>,
+    pub timer: Timer,
+}
+
+fn boss_teleport_system(time: Res<Time>, mut query: Query<(&mut Transform, &mut TeleportAbility)>) {
+    for (mut transform, mut teleport) in query.iter_mut() {
+        teleport.timer.tick(time.delta());
+
+        if teleport.timer.just_finished() {
+            let rng = &mut rand::rng();
+            // Pick a random position from the predefined list
+            if let Some(random_pos) = teleport.positions.choose(rng) {
+                transform.translation.x = random_pos.x;
+                transform.translation.y = random_pos.y;
+            }
+        }
+    }
 }
