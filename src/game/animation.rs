@@ -15,6 +15,7 @@ use crate::{
         level::{
             bosses::{GatesAssets, MayaAssets, MuraAssets, NarakAssets},
             enemies::{EnemyAssets, EyeEnemyAssets},
+            projectiles::ProjectileAssets,
         },
         player::{Player, PlayerAssets},
     },
@@ -90,6 +91,7 @@ pub enum PlayerAnimationState {
 pub struct AnimationAssets {
     pub player: PlayerAssets,
     pub enemies: EnemyAssets,
+    pub projectiles: ProjectileAssets,
 }
 
 impl FromWorld for AnimationAssets {
@@ -109,7 +111,7 @@ impl FromWorld for AnimationAssets {
                     assets.load("audio/sound_effects/player/att2.ogg"),
                     assets.load("audio/sound_effects/player/att3.ogg"),
                 ],
-                pickup: assets.load("textures/props/pickup.ogg"),
+                pickup: assets.load("audio/sound_effects/player/pickup.ogg"),
                 damages: vec![
                     assets.load("audio/sound_effects/player/dmg1.ogg"),
                     assets.load("audio/sound_effects/player/dmg2.ogg"),
@@ -187,6 +189,14 @@ impl FromWorld for AnimationAssets {
                     death: assets.load("audio/sound_effects/narak/death.ogg"),
                     enemy: assets.load("textures/chars/ashiok.aseprite"),
                 },
+                bullet: assets.load("textures/props/bullet.png"),
+            },
+            projectiles: ProjectileAssets {
+                ricochet: vec![
+                    assets.load("audio/sound_effects/projectile/clink1.ogg"),
+                    assets.load("audio/sound_effects/projectile/clink2.ogg"),
+                    assets.load("audio/sound_effects/projectile/clink3.ogg"),
+                ],
                 bullet: assets.load("textures/props/bullet.png"),
             },
         }

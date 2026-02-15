@@ -18,7 +18,11 @@ use crate::{
     game::{
         Red,
         animation::*,
-        level::{enemies::*, projectiles::*},
+        level::{
+            bosses::{Boss, GATES_NAME, MAYA_NAME, MURA_NAME, NARAK_NAME, TUTORIAL_BOSS_NAME},
+            enemies::*,
+            projectiles::*,
+        },
         player::*,
     },
 };
@@ -96,7 +100,7 @@ fn on_collision(
     mut commands: Commands,
     anim_assets: Res<AnimationAssets>,
     mut collision_reader: MessageReader<CollisionStart>,
-    mut enemy_query: Query<(Entity, &mut Enemy)>,
+    mut enemy_query: Query<(Entity, &mut Enemy, Option<&Boss>, Option<&Name>)>,
     mut player_query: Query<(Entity, &mut Player)>,
     mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform, Has<Friendly>, Has<Hostile>)>,
     mut something_else_query: Query<&ProjectilePassthrough>,
@@ -111,7 +115,7 @@ fn on_collision(
         // player/enemy with projectile
         if on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &mut something_else_query, &c1, &c2, &mut is_c2_projectile)
         || on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &mut something_else_query, &c2, &c1, &mut is_c1_projectile)
-        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query,  &mut something_else_query,&c1, &c2, &mut is_c2_projectile)
+        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query,  &mut something_else_query, &c1, &c2, &mut is_c2_projectile)
         || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query,  &mut something_else_query, &c2, &c1, &mut is_c1_projectile)
         {
             continue;
@@ -121,7 +125,7 @@ fn on_collision(
             is_c1_projectile.unwrap_or(projectile_query.contains(c1)),
             is_c2_projectile.unwrap_or(projectile_query.contains(c2)),
         ) {
-            (true, true) => {/* projectile vs projectile */}
+            (true, true) => {commands.spawn(sound_effect(anim_assets.projectiles.ricochet.choose(&mut rand::rng()).unwrap().clone()));},
             (true, false) => on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &mut something_else_query, &c1, &c2),
             (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &mut something_else_query, &c2, &c1),
             (false, false) => {/* else vs else */}
@@ -133,7 +137,7 @@ fn on_collision(
 fn on_collision_player(
     commands: &mut Commands,
     anim_assets: &Res<AnimationAssets>,
-    enemy_query: &mut Query<(Entity, &mut Enemy)>,
+    enemy_query: &mut Query<(Entity, &mut Enemy, Option<&Boss>, Option<&Name>)>,
     player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(
         Entity,
@@ -148,7 +152,6 @@ fn on_collision_player(
     is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is player and c2 is projectile
-    //if player_query.contains(*c1) {
     if let Ok((player_entity, mut player)) = player_query.get_mut(*c1) {
         if let Ok((proj_entity, _, _, _, has_hostile)) = projectile_query.get(*c2) {
             if has_hostile {
@@ -177,7 +180,7 @@ fn on_collision_player(
 fn on_collision_enemy(
     commands: &mut Commands,
     anim_assets: &Res<AnimationAssets>,
-    enemy_query: &mut Query<(Entity, &mut Enemy)>,
+    enemy_query: &mut Query<(Entity, &mut Enemy, Option<&Boss>, Option<&Name>)>,
     player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(
         Entity,
@@ -192,22 +195,78 @@ fn on_collision_enemy(
     is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is enemy and c2 is projectile
-    if let Ok((enemy_entity, mut enemy)) = enemy_query.get_mut(*c1) {
+    if let Ok((enemy_entity, mut enemy, opt_boss, opt_name)) = enemy_query.get_mut(*c1) {
         if let Ok((proj_entity, _, _, has_friendly, _)) = projectile_query.get(*c2) {
             if has_friendly {
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
                 commands.entity(proj_entity).despawn();
                 commands.entity(enemy_entity).insert(Red::default());
-                commands.spawn(sound_effect(
-                    anim_assets
-                        .enemies
-                        .eye_enemy
-                        .damages
-                        .choose(&mut rand::rng())
-                        .unwrap()
-                        .clone(),
-                ));
+                if let (Some(_boss), Some(name)) = (opt_boss, opt_name) {
+                    match name.as_str() {
+                        TUTORIAL_BOSS_NAME => commands.spawn(sound_effect(
+                            anim_assets
+                                .enemies
+                                .eye_enemy
+                                .damages
+                                .choose(&mut rand::rng())
+                                .unwrap()
+                                .clone(),
+                        )),
+                        // gates does not have its own sfx
+                        GATES_NAME => commands.spawn(sound_effect(
+                            anim_assets
+                                .enemies
+                                .eye_enemy
+                                .damages
+                                .choose(&mut rand::rng())
+                                .unwrap()
+                                .clone(),
+                        )),
+                        MAYA_NAME => commands.spawn(sound_effect(
+                            anim_assets
+                                .enemies
+                                .maya
+                                .damages
+                                .choose(&mut rand::rng())
+                                .unwrap()
+                                .clone(),
+                        )),
+                        MURA_NAME => commands.spawn(sound_effect(
+                            anim_assets
+                                .enemies
+                                .mura
+                                .damages
+                                .choose(&mut rand::rng())
+                                .unwrap()
+                                .clone(),
+                        )),
+                        NARAK_NAME => commands.spawn(sound_effect(
+                            anim_assets
+                                .enemies
+                                .narak
+                                .damages
+                                .choose(&mut rand::rng())
+                                .unwrap()
+                                .clone(),
+                        )),
+
+                        _ => {
+                            panic!("unknown boss")
+                        }
+                    };
+                } else {
+                    // non-boss
+                    commands.spawn(sound_effect(
+                        anim_assets
+                            .enemies
+                            .eye_enemy
+                            .damages
+                            .choose(&mut rand::rng())
+                            .unwrap()
+                            .clone(),
+                    ));
+                }
             }
             // nothing for enemy bullet to enemy(drain)
             *is_c2_projectile = Some(true);
