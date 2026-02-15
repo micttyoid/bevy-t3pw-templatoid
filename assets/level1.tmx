@@ -82,6 +82,22 @@
     <object id="1" x="0" y="0" width="16" height="16"/>
    </objectgroup>
   </tile>
+  <tile id="50">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="51">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
   <tile id="60">
    <objectgroup draworder="index" id="2">
     <object id="1" x="0" y="0" width="16" height="16"/>
@@ -112,12 +128,80 @@
     <object id="1" x="0" y="0" width="16" height="16"/>
    </objectgroup>
   </tile>
+  <tile id="70">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="71">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <tileset firstgid="201" name="Tiles-updated" tilewidth="16" tileheight="16" tilecount="200" columns="20">
   <image source="Tiles.png" width="320" height="160"/>
+  <tile id="50">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="51">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="70">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="71">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <tileset firstgid="401" name="Tiles" tilewidth="16" tileheight="16" tilecount="200" columns="20">
   <image source="Tiles.png" width="320" height="160"/>
+  <tile id="50">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="51">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="70">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="71">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <layer id="1" name="Tile Layer 1" width="40" height="60">
   <data encoding="csv">

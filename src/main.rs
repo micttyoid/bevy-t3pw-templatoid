@@ -21,7 +21,7 @@ use bevy::{
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::theme::palette::BACKGROUND_DARK;
+use crate::{game::movement::PassthroughHook, theme::palette::BACKGROUND_DARK};
 
 //use bevy_ecs_tiled::prelude::*;
 
@@ -64,12 +64,17 @@ impl Plugin for AppPlugin {
             |bytes: &[u8], _path: String| { Font::try_from_bytes(bytes.to_vec()).unwrap() }
         );
 
-        app.add_plugins(PhysicsPlugins::default().with_length_unit(100.0))
-            .insert_resource({
-                let mut physics_time = Time::<Physics>::default();
-                physics_time.pause();
-                physics_time
-            });
+        app.add_plugins(
+            PhysicsPlugins::default()
+                .with_length_unit(100.0)
+                .with_collision_hooks::<PassthroughHook>(),
+        )
+        .insert_resource({
+            let mut physics_time = Time::<Physics>::default();
+            physics_time.pause();
+            physics_time
+        });
+
         #[cfg(debug_assertions)]
         {
             app.add_plugins(PhysicsDebugPlugin);

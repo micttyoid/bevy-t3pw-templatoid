@@ -4,7 +4,7 @@
 //! to get a feeling for the template.
 mod animation;
 pub mod level;
-mod movement;
+pub mod movement;
 pub mod player;
 
 use bevy::prelude::*;

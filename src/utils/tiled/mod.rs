@@ -33,17 +33,15 @@ use bevy::{
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
+
 use thiserror::Error;
 use tiled::{ObjectShape, PropertyValue};
 
 use crate::{
     game::{
-        level::{
-            Level,
-            projectiles::ProjectilePassthrough,
-        },
+        level::{Level, projectiles::ProjectilePassthrough},
         player::PLAYER_Z_TRANSLATION,
-    },   
+    },
     screens::Screen,
     utils::tiled::shaper::{PreSharedShape, shaper},
 };
@@ -76,12 +74,24 @@ pub fn spawn_tiled_map(
     ));
 }
 
+pub struct Properties {
+    is_projectile_passthrough: bool,
+}
+
+impl Default for Properties {
+    fn default() -> Self {
+        Self {
+            is_projectile_passthrough: false,
+        }
+    }
+}
+
 #[derive(TypePath, Asset)]
 pub struct TiledMap {
     pub map: tiled::Map,
     //pub pre_colliders: HashMap<tiled::TileId, Vec<(f32, f32, f32, f32)>>, // by tiles
     pub pre_colliders: HashMap<tiled::TileId, PreSharedShape>,
-
+    pub pre_properties: HashMap<tiled::TileId, Properties>,
     pub tilemap_textures: HashMap<usize, TilemapTexture>,
 
     // The offset into the tileset_images for each tile id within each tileset.
@@ -165,8 +175,24 @@ impl AssetLoader for TiledLoader {
         // TODO: bundle-wise solution
         //let mut pre_colliders = HashMap::<tiled::TileId, Vec<(f32, f32, f32, f32)>>::new();
         let mut pre_colliders = HashMap::<tiled::TileId, PreSharedShape>::new();
+        let mut pre_properties = HashMap::<tiled::TileId, Properties>::new();
         for tileset in map.tilesets() {
             for (tile_id, tile_data) in tileset.tiles() {
+                if let Some(p) = tile_data.properties.get("ProjectilePassthrough") {
+                    match p {
+                        PropertyValue::BoolValue(is_projectile_passthrough) => {
+                            if *is_projectile_passthrough {
+                                pre_properties.insert(
+                                    tile_id,
+                                    Properties {
+                                        is_projectile_passthrough: true,
+                                    },
+                                );
+                            }
+                        }
+                        _ => {}
+                    }
+                }
                 if let Some(obj_layer_data_collision) = &tile_data.collision {
                     //let mut rects = Vec::new();
                     let pre_shared_shape = PreSharedShape::from_object_data(
@@ -259,6 +285,7 @@ impl AssetLoader for TiledLoader {
         let asset_map = TiledMap {
             map,
             pre_colliders,
+            pre_properties,
             tilemap_textures,
             #[cfg(not(feature = "atlas"))]
             tile_image_offsets,
@@ -451,9 +478,18 @@ fn process_loaded_maps(
                                         DespawnOnExit(Screen::Gameplay),
                                     ))
                                     .id();
+
                                 // TODO: bundle-wise work instead
                                 if tileset.spacing != 0 {
                                     panic!("Don't do that please ;o");
+                                };
+
+                                let is_projectile_passthrough = if let Some(properties) =
+                                    tiled_map.pre_properties.get(&layer_tile.id())
+                                {
+                                    properties.is_projectile_passthrough
+                                } else {
+                                    false
                                 };
 
                                 let tile_width = tileset.tile_width as f32;
@@ -461,63 +497,118 @@ fn process_loaded_maps(
                                 let half_map_width = tiled_map.map.width as f32 / 2.0;
                                 let half_map_height = tiled_map.map.height as f32 / 2.0;
 
-                                let mut colliders = Vec::<Entity>::new(); // This has no use for now
+                                let mut colliders = Vec::<Entity>::new();
                                 if let Some(pre_shared_shape) =
                                     tiled_map.pre_colliders.get(&layer_tile.id())
                                 {
                                     for obj in pre_shared_shape.iter() {
                                         use ObjectShape::*;
                                         match &obj.shape {
-                                            Rect { width, height } => colliders.push(
+                                            Rect { width, height } => {
                                                 commands
                                                     .entity(tile_entity)
-                                                    .with_child((
-                                                        Transform::from_translation(
-                                                            Vec3::new(
-                                                                tile_width
-                                                                    * (x as f32 - half_map_width),
-                                                                tile_height
-                                                                    * (y as f32 - half_map_height),
-                                                                0.,
-                                                            ) + Vec3::new(
-                                                                obj.x + width / 2.0,
-                                                                obj.y + height / 2.0,
-                                                                PLAYER_Z_TRANSLATION,
-                                                            ),
-                                                        ),
-                                                        Collider::from(shaper(&obj.shape)),
-                                                        ColliderOf { body: layer_entity },
-                                                        DespawnOnExit(Screen::Gameplay),
-                                                    ))
-                                                    .id(),
-                                            ),
-                                            _ => colliders.push(
+                                                    .with_children(|parent| {
+                                                        if is_projectile_passthrough {
+                                                            let child = parent.spawn((
+                                                                ProjectilePassthrough,
+                                                                Transform::from_translation(
+                                                                    Vec3::new(
+                                                                        tile_width
+                                                                            * (x as f32 - half_map_width),
+                                                                        tile_height
+                                                                            * (y as f32 - half_map_height),
+                                                                        0.,
+                                                                    ) + Vec3::new(
+                                                                        obj.x + width / 2.0,
+                                                                        obj.y + height / 2.0,
+                                                                        PLAYER_Z_TRANSLATION,
+                                                                    ),
+                                                                ),
+                                                                Collider::from(shaper(&obj.shape)),
+                                                                ColliderOf { body: layer_entity },
+                                                                DespawnOnExit(Screen::Gameplay),
+                                                            )).id();
+                                                            colliders.push(child);
+                                                        } else {
+                                                            let child = parent.spawn((
+                                                                Transform::from_translation(
+                                                                    Vec3::new(
+                                                                        tile_width
+                                                                            * (x as f32 - half_map_width),
+                                                                        tile_height
+                                                                            * (y as f32 - half_map_height),
+                                                                        0.,
+                                                                    ) + Vec3::new(
+                                                                        obj.x + width / 2.0,
+                                                                        obj.y + height / 2.0,
+                                                                        PLAYER_Z_TRANSLATION,
+                                                                    ),
+                                                                ),
+                                                                Collider::from(shaper(&obj.shape)),
+                                                                ColliderOf { body: layer_entity },
+                                                                DespawnOnExit(Screen::Gameplay),
+                                                            )).id();
+                                                            colliders.push(child);
+                                                        }
+                                                    });
+                                            }
+                                            _ => {
                                                 commands
                                                     .entity(tile_entity)
-                                                    .with_child((
-                                                        Transform::from_translation(
-                                                            Vec3::new(
-                                                                tile_width
-                                                                    * (x as f32 - half_map_width),
-                                                                tile_height
-                                                                    * (y as f32 - half_map_height),
-                                                                0.,
-                                                            ) + Vec3::new(
-                                                                obj.x,
-                                                                obj.y,
-                                                                PLAYER_Z_TRANSLATION,
+                                                    .with_children(|parent| {
+                                                        if is_projectile_passthrough {
+                                                            let child = parent.spawn((
+                                                                ProjectilePassthrough,
+                                                                Transform::from_translation(
+                                                                    Vec3::new(
+                                                                        tile_width
+                                                                            * (x as f32 - half_map_width),
+                                                                        tile_height
+                                                                            * (y as f32 - half_map_height),
+                                                                        0.,
+                                                                    ) + Vec3::new(
+                                                                        obj.x,
+                                                                        obj.y,
+                                                                        PLAYER_Z_TRANSLATION,
+                                                                    ),
+                                                                ),
+                                                                Collider::from(shaper(&obj.shape)),
+                                                                ColliderOf { body: layer_entity },
+                                                                DespawnOnExit(Screen::Gameplay),
+                                                            )).id();
+                                                            colliders.push(child);
+                                                    } else {
+                                                        let child = parent.spawn((
+                                                            Transform::from_translation(
+                                                                Vec3::new(
+                                                                    tile_width
+                                                                        * (x as f32 - half_map_width),
+                                                                    tile_height
+                                                                        * (y as f32 - half_map_height),
+                                                                    0.,
+                                                                ) + Vec3::new(
+                                                                    obj.x,
+                                                                    obj.y,
+                                                                    PLAYER_Z_TRANSLATION,
+                                                                ),
                                                             ),
-                                                        ),
-                                                        Collider::from(shaper(&obj.shape)),
-                                                        ColliderOf { body: layer_entity },
-                                                        DespawnOnExit(Screen::Gameplay),
-                                                    ))
-                                                    .id(),
-                                            ),
+                                                            Collider::from(shaper(&obj.shape)),
+                                                            ColliderOf { body: layer_entity },
+                                                            DespawnOnExit(Screen::Gameplay),
+                                                        )).id();
+                                                        colliders.push(child);
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                 }
-                                //if !colliders.is_empty() {}
+                                if is_projectile_passthrough {
+                                    if colliders.is_empty() {
+                                        // directly to the entity
+                                        commands.entity(tile_entity).insert(ProjectilePassthrough);
+                                    }
+                                }
                                 tile_storage.set(&tile_pos, tile_entity);
                             }
                         }
