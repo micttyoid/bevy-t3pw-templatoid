@@ -20,6 +20,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
+/// Tile property
+#[derive(Component)]
+#[require(ActiveCollisionHooks::FILTER_PAIRS)]
+pub struct ProjectilePassthrough;
+
 // TODO:
 // Start throwing by two cases:
 // - A source gets to the desired location

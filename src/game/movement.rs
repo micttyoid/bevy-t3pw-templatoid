@@ -23,7 +23,10 @@ use crate::{
     },
 };
 use avian2d::prelude::*;
-use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::PrimaryWindow};
+use bevy::{
+    ecs::system::SystemParam, input::common_conditions::input_just_pressed, prelude::*,
+    window::PrimaryWindow,
+};
 use rand::seq::IndexedRandom;
 use std::ops::DerefMut;
 
@@ -64,6 +67,30 @@ impl Default for MovementController {
     }
 }
 
+#[derive(SystemParam)]
+pub struct PassthroughHook<'w, 's> {
+    projectile_query: Query<'w, 's, &'static Projectile>,
+    passthrough_query: Query<'w, 's, &'static ProjectilePassthrough>,
+}
+
+impl CollisionHooks for PassthroughHook<'_, '_> {
+    fn filter_pairs(&self, collider1: Entity, collider2: Entity, _commands: &mut Commands) -> bool {
+        let is_projectile1 = self.projectile_query.get(collider1).is_ok();
+        let is_projectile2 = self.projectile_query.get(collider2).is_ok();
+
+        if is_projectile1 == is_projectile2 {
+            return true;
+        }
+
+        let (_projectile, passthrough) = if is_projectile1 {
+            (collider1, collider2)
+        } else {
+            (collider2, collider1)
+        };
+        self.passthrough_query.get(passthrough).is_err()
+    }
+}
+
 #[cfg_attr(any(), rustfmt::skip)]
 fn on_collision(
     mut commands: Commands,
@@ -71,7 +98,8 @@ fn on_collision(
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy)>,
     mut player_query: Query<(Entity, &mut Player)>,
-    mut projectile_query: Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform, Has<Friendly>, Has<Hostile>)>,
+    mut something_else_query: Query<&ProjectilePassthrough>,
 ) {
     for msg in collision_reader.read() {
         let c1 = msg.collider1;
@@ -81,10 +109,10 @@ fn on_collision(
         let mut is_c2_projectile: Option<bool> = None;
 
         // player/enemy with projectile
-        if on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
-        || on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
-        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
-        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
+        if on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &mut something_else_query, &c1, &c2, &mut is_c2_projectile)
+        || on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &mut something_else_query, &c2, &c1, &mut is_c1_projectile)
+        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query,  &mut something_else_query,&c1, &c2, &mut is_c2_projectile)
+        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query,  &mut something_else_query, &c2, &c1, &mut is_c1_projectile)
         {
             continue;
         }
@@ -94,8 +122,8 @@ fn on_collision(
             is_c2_projectile.unwrap_or(projectile_query.contains(c2)),
         ) {
             (true, true) => {/* projectile vs projectile */}
-            (true, false) => on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &c1),
-            (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &c2),
+            (true, false) => on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &mut something_else_query, &c1, &c2),
+            (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &mut something_else_query, &c2, &c1),
             (false, false) => {/* else vs else */}
         }
     }
@@ -107,7 +135,14 @@ fn on_collision_player(
     anim_assets: &Res<AnimationAssets>,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
     player_query: &mut Query<(Entity, &mut Player)>,
-    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    projectile_query: &mut Query<(
+        Entity,
+        &mut Projectile,
+        &mut Transform,
+        Has<Friendly>,
+        Has<Hostile>,
+    )>,
+    something_else_query: &mut Query<&ProjectilePassthrough>,
     c1: &Entity,
     c2: &Entity,
     is_c2_projectile: &mut Option<bool>,
@@ -115,7 +150,7 @@ fn on_collision_player(
     // c1 is player and c2 is projectile
     //if player_query.contains(*c1) {
     if let Ok((player_entity, mut player)) = player_query.get_mut(*c1) {
-        if let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(*c2) {
+        if let Ok((proj_entity, _, _, _, has_hostile)) = projectile_query.get(*c2) {
             if has_hostile {
                 commands.entity(player_entity).insert(Red::default());
                 player.life = player.life.saturating_sub(1);
@@ -144,14 +179,21 @@ fn on_collision_enemy(
     anim_assets: &Res<AnimationAssets>,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
     player_query: &mut Query<(Entity, &mut Player)>,
-    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    projectile_query: &mut Query<(
+        Entity,
+        &mut Projectile,
+        &mut Transform,
+        Has<Friendly>,
+        Has<Hostile>,
+    )>,
+    something_else_query: &mut Query<&ProjectilePassthrough>,
     c1: &Entity,
     c2: &Entity,
     is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is enemy and c2 is projectile
     if let Ok((enemy_entity, mut enemy)) = enemy_query.get_mut(*c1) {
-        if let Ok((proj_entity, _, has_friendly, _)) = projectile_query.get(*c2) {
+        if let Ok((proj_entity, _, _, has_friendly, _)) = projectile_query.get(*c2) {
             if has_friendly {
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
@@ -181,12 +223,23 @@ fn on_collision_enemy(
 fn on_collision_projectile_with_something_else(
     commands: &mut Commands,
     anim_assets: &Res<AnimationAssets>,
-    projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
+    projectile_query: &mut Query<(
+        Entity,
+        &mut Projectile,
+        &mut Transform,
+        Has<Friendly>,
+        Has<Hostile>,
+    )>,
+    something_else_query: &mut Query<&ProjectilePassthrough>,
     c1: &Entity,
+    c2: &Entity,
 ) {
-    if let Ok((proj_entity, mut projectile, has_friendly, _)) = projectile_query.get_mut(*c1) {
-        // This part getting smelly
-        // Something else! (neither enemy nor player)
+    if let Ok((proj_entity, mut projectile, mut transform, has_friendly, _)) =
+        projectile_query.get_mut(*c1)
+    {
+        if let Ok(projectile_passthrough) = something_else_query.get_mut(*c2) {
+            // nothing (replaced with hook)
+        }
         for due in projectile.dues.iter_mut() {
             match due {
                 Due::BounceDown(count) => {
