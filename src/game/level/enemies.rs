@@ -5,10 +5,14 @@ use rand::{Rng, seq::IndexedRandom};
 
 use crate::{
     PausableSystems,
+    audio::sound_effect,
     game::{
         animation::*,
         level::{
-            bosses::{Boss, GatesAssets, MayaAssets, MuraAssets, NarakAssets},
+            bosses::{
+                Boss, GATES_NAME, GatesAssets, MAYA_NAME, MURA_NAME, MayaAssets, MuraAssets,
+                NARAK_NAME, NarakAssets, TUTORIAL_BOSS_NAME,
+            },
             projectiles::{Hostile, boss_basic_bullet, enemy_basic_bullet},
         },
         movement::*,
@@ -141,6 +145,8 @@ pub struct EnemyAssets {
     pub mura: MuraAssets,   // boss3
     pub narak: NarakAssets, // boss4
     pub bullet: Handle<Image>,
+    #[dependency]
+    pub throw: Handle<AudioSource>,
 }
 
 #[derive(Asset, Clone, Reflect)]
@@ -195,14 +201,14 @@ fn enemy_shooting_system(
     mut cmd: Commands,
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
-    mut enemy_query: Query<(&Transform, &mut Enemy, Has<Boss>), Without<Player>>,
+    mut enemy_query: Query<(&Transform, &mut Enemy, Has<Boss>, Option<&Name>), Without<Player>>,
     anim_assets: If<Res<AnimationAssets>>,
 ) {
     let Ok(player_transform) = player_query.single() else {
         return; // No player, don't shoot
     };
     let player_pos = player_transform.translation.xy();
-    for (enemy_transform, mut shooter, is_boss) in enemy_query.iter_mut() {
+    for (enemy_transform, mut shooter, is_boss, o_name) in enemy_query.iter_mut() {
         if shooter.attacks.is_empty() {
             continue;
         }
@@ -237,6 +243,47 @@ fn enemy_shooting_system(
                         rng.random_range(0.3..=1.0),
                     );
                     if is_boss {
+                        if let Some(name) = o_name {
+                            match name.as_str() {
+                                TUTORIAL_BOSS_NAME => {
+                                    cmd.spawn(sound_effect(anim_assets.enemies.throw.clone()))
+                                }
+                                // gates does not have its own sfx
+                                GATES_NAME => {
+                                    cmd.spawn(sound_effect(anim_assets.enemies.throw.clone()))
+                                }
+                                MAYA_NAME => cmd.spawn(sound_effect(
+                                    anim_assets
+                                        .enemies
+                                        .maya
+                                        .attacks
+                                        .choose(&mut rand::rng())
+                                        .unwrap()
+                                        .clone(),
+                                )),
+                                MURA_NAME => cmd.spawn(sound_effect(
+                                    anim_assets
+                                        .enemies
+                                        .mura
+                                        .attacks
+                                        .choose(&mut rand::rng())
+                                        .unwrap()
+                                        .clone(),
+                                )),
+                                NARAK_NAME => cmd.spawn(sound_effect(
+                                    anim_assets
+                                        .enemies
+                                        .narak
+                                        .attacks
+                                        .choose(&mut rand::rng())
+                                        .unwrap()
+                                        .clone(),
+                                )),
+                                _ => {
+                                    panic!("unknown boss")
+                                }
+                            };
+                        }
                         cmd.spawn(boss_basic_bullet::<Hostile>(
                             enemy_pos,
                             direction,
@@ -245,6 +292,7 @@ fn enemy_shooting_system(
                             random_color,
                         ));
                     } else {
+                        cmd.spawn(sound_effect(anim_assets.enemies.throw.clone()));
                         cmd.spawn(enemy_basic_bullet::<Hostile>(
                             enemy_pos,
                             direction,
