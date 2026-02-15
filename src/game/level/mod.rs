@@ -14,10 +14,11 @@ use crate::{
         level::enemies::{
             basic_boss, basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, son_boss,
         },
-        player::player,
+        player::{PLAYER_Z_TRANSLATION, player},
     },
     menus::Menu,
     screens::Screen,
+    theme::palette::LABEL_TEXT,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -150,12 +151,25 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_boss((-30., 220.).into(), &anim_assets),
+                basic_boss((-30., 180.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
                     music(level_assets.music.clone()),
                 ),
+                (
+                    Name::new("Tutorial Text"),
+                    Text2d::new(
+                        "Aim & Attack to Kill Boss\n and Proceed to Next Level".to_string()
+                    ),
+                    TextFont {
+                        font: level_assets.level_font.clone(),
+                        font_size: 20.0,
+                        ..default()
+                    },
+                    TextColor(LABEL_TEXT),
+                    Transform::from_xyz(-30.0, 225.0, PLAYER_Z_TRANSLATION),
+                )
             ],));
         }
         Gates => {
