@@ -77,9 +77,7 @@ pub struct MayaAssets {
     #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
     #[dependency]
-    pub grunts: Vec<Handle<AudioSource>>,
-    #[dependency]
-    pub intro: Handle<AudioSource>,
+    pub idle: Handle<AudioSource>,
 }
 
 // boss3
@@ -92,7 +90,9 @@ pub struct MuraAssets {
     #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
     #[dependency]
-    pub idle: Handle<AudioSource>,
+    pub grunts: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub intro: Handle<AudioSource>,
 }
 
 // boss4

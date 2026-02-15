@@ -153,12 +153,7 @@ impl FromWorld for AnimationAssets {
                         assets.load("audio/sound_effects/maya/dmg3.ogg"),
                         assets.load("audio/sound_effects/maya/dmg4.ogg"),
                     ],
-                    grunts: vec![
-                        assets.load("audio/sound_effects/maya/grunt1.ogg"),
-                        assets.load("audio/sound_effects/maya/grunt2.ogg"),
-                        assets.load("audio/sound_effects/maya/grunt3.ogg"),
-                    ],
-                    intro: assets.load("audio/sound_effects/maya/intro.ogg"),
+                    idle: assets.load("audio/sound_effects/maya/idle.ogg"),
                 },
                 // boss3
                 mura: MuraAssets {
@@ -167,12 +162,17 @@ impl FromWorld for AnimationAssets {
                         assets.load("audio/sound_effects/mura/att1.ogg"),
                         assets.load("audio/sound_effects/mura/att2.ogg"),
                     ],
+                    grunts: vec![
+                        assets.load("audio/sound_effects/mura/grunt1.ogg"),
+                        assets.load("audio/sound_effects/mura/grunt2.ogg"),
+                        assets.load("audio/sound_effects/mura/grunt3.ogg"),
+                    ],
+                    intro: assets.load("audio/sound_effects/mura/intro.ogg"),
                     damages: vec![
                         assets.load("audio/sound_effects/mura/dmg1.ogg"),
                         assets.load("audio/sound_effects/mura/dmg2.ogg"),
                         assets.load("audio/sound_effects/mura/dmg3.ogg"),
                     ],
-                    idle: assets.load("audio/sound_effects/mura/idle.ogg"),
                     enemy: assets.load("textures/chars/snake.aseprite"),
                 },
                 // boss4
