@@ -4,7 +4,11 @@
 
 use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{menus::Menu, screens::Screen, theme::prelude::*};
+use crate::{
+    menus::Menu,
+    screens::Screen,
+    theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, prelude::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
@@ -19,20 +23,35 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_settings_menu(mut commands: Commands) {
+fn spawn_settings_menu(mut commands: Commands, menu_asset: Res<InteractionAssets>) {
+    commands.spawn((
+        Name::new("Background Image"),
+        GlobalZIndex(2),
+        Node {
+            position_type: PositionType::Absolute,
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        ImageNode {
+            image: menu_asset.cover.clone(),
+            ..default()
+        },
+        DespawnOnExit(Menu::Settings),
+    ));
     commands.spawn((
         widget::ui_root("Settings Menu"),
-        GlobalZIndex(2),
+        GlobalZIndex(3),
         DespawnOnExit(Menu::Settings),
         children![
             widget::header("Settings"),
-            settings_grid(),
+            settings_grid(menu_asset.settings_font.clone()),
             widget::button("Back", go_back_on_click),
         ],
     ));
 }
 
-fn settings_grid() -> impl Bundle {
+fn settings_grid(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Settings Grid"),
         Node {
@@ -50,12 +69,12 @@ fn settings_grid() -> impl Bundle {
                     ..default()
                 }
             ),
-            global_volume_widget(),
+            global_volume_widget(font),
         ],
     )
 }
 
-fn global_volume_widget() -> impl Bundle {
+fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
     (
         Name::new("Global Volume Widget"),
         Node {
@@ -63,7 +82,7 @@ fn global_volume_widget() -> impl Bundle {
             ..default()
         },
         children![
-            widget::button_small("-", lower_global_volume),
+            widget::button_small_custom_font("-", lower_global_volume, font.clone()),
             (
                 Name::new("Current Volume"),
                 Node {
@@ -73,7 +92,7 @@ fn global_volume_widget() -> impl Bundle {
                 },
                 children![(widget::label(""), GlobalVolumeLabel)],
             ),
-            widget::button_small("+", raise_global_volume),
+            widget::button_small_custom_font("+", raise_global_volume, font),
         ],
     )
 }

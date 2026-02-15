@@ -67,6 +67,8 @@ pub(crate) struct InteractionAssets {
     pub pause: Handle<AudioSource>,
     #[dependency]
     pub cover: Handle<Image>,
+    #[dependency]
+    pub settings_font: Handle<Font>,
 }
 
 impl FromWorld for InteractionAssets {
@@ -78,6 +80,7 @@ impl FromWorld for InteractionAssets {
             click: assets.load("audio/sound_effects/ui/button-1.ogg"),
             pause: assets.load("audio/sound_effects/ui/pause.ogg"),
             cover: assets.load("images/cover.png"),
+            settings_font: assets.load("fonts/firamono-medium.ttf"),
         }
     }
 }

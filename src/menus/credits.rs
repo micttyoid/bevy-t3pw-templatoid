@@ -36,11 +36,12 @@ fn spawn_credits_menu(mut commands: Commands, bg_assets: Res<InteractionAssets>)
             image: bg_assets.cover.clone(),
             ..default()
         },
+        GlobalZIndex(2),
         DespawnOnExit(Menu::Credits),
     ));
     commands.spawn((
         widget::ui_root("Credits Menu"),
-        GlobalZIndex(2),
+        GlobalZIndex(3),
         DespawnOnExit(Menu::Credits),
         children![
             widget::header("Created by"),

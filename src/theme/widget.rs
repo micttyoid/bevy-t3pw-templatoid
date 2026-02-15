@@ -75,7 +75,7 @@ where
         text,
         action,
         Node {
-            width: px(380),
+            width: px(340),
             height: px(80),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
@@ -137,6 +137,79 @@ where
                         Name::new("Button Text"),
                         Text(text),
                         TextFont::from_font_size(40.0),
+                        TextColor(BUTTON_TEXT),
+                        // Don't bubble picking events from the text up to the button.
+                        Pickable::IGNORE,
+                    )],
+                ))
+                .insert(button_bundle)
+                .observe(action);
+        })),
+    )
+}
+
+/// A small square button with text and an action defined as an [`Observer`].
+pub fn button_small_custom_font<E, B, M, I>(
+    text: impl Into<String>,
+    action: I,
+    font: Handle<Font>,
+) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+    I: IntoObserverSystem<E, B, M>,
+{
+    button_base_custom_font(
+        text,
+        action,
+        Node {
+            width: px(30),
+            height: px(30),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        font,
+    )
+}
+
+/// A simple button with text and an action defined as an [`Observer`]. The button's layout is provided by `button_bundle`.
+fn button_base_custom_font<E, B, M, I>(
+    text: impl Into<String>,
+    action: I,
+    button_bundle: impl Bundle,
+    font: Handle<Font>,
+) -> impl Bundle
+where
+    E: EntityEvent,
+    B: Bundle,
+    I: IntoObserverSystem<E, B, M>,
+{
+    let text = text.into();
+    let action = IntoObserverSystem::into_system(action);
+    (
+        Name::new("Button"),
+        Node::default(),
+        Children::spawn(SpawnWith(|parent: &mut ChildSpawner| {
+            parent
+                .spawn((
+                    Name::new("Button Inner"),
+                    Button,
+                    BackgroundColor(BUTTON_BACKGROUND),
+                    BorderColor::all(BUTTON_BORDER),
+                    InteractionPalette {
+                        none: BUTTON_BACKGROUND,
+                        hovered: BUTTON_HOVERED_BACKGROUND,
+                        pressed: BUTTON_PRESSED_BACKGROUND,
+                    },
+                    children![(
+                        Name::new("Button Text"),
+                        Text(text),
+                        TextFont {
+                            font: font,
+                            font_size: 40.0,
+                            ..default()
+                        },
                         TextColor(BUTTON_TEXT),
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
