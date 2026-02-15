@@ -7,7 +7,7 @@ use crate::{
     PausableSystems,
     game::{
         animation::*,
-        level::projectiles::{Hostile, enemy_basic_bullet},
+        level::projectiles::{Hostile, boss_basic_bullet, enemy_basic_bullet},
         movement::*,
         player::{PLAYER_Z_TRANSLATION, Player},
     },
@@ -22,8 +22,8 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             check_enemy_death,
-            update_moves,
-            update_boss_moves,
+            //update_moves,
+            //update_boss_moves,
             enemy_shooting_system,
             boss_teleport_system,
         )
@@ -47,57 +47,57 @@ pub struct Enemy {
     pub attack_idx: usize,
 }
 
-fn update_moves(
-    time: Res<Time>,
-    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), Without<Boss>>,
-) {
-    let d = time.delta();
-    for (mut velocity, mut enemy) in enemy_query {
-        let mut is_pop = false;
-        if let Some(m) = enemy.moves.last_mut() {
-            match m {
-                Move::UnitVelocity(v, timer) => {
-                    if timer.is_finished() {
-                        is_pop = true;
-                        *velocity = LinearVelocity::ZERO;
-                    } else {
-                        timer.tick(d);
-                        *velocity = *v;
-                    }
-                } //_ => {},
-            }
-        } else {
-            enemy.random_linear_moves(); // refill
-        }
-        enemy.moves.pop_if(|_| is_pop);
-    }
-}
+// fn update_moves(
+//     time: Res<Time>,
+//     enemy_query: Query<(&mut LinearVelocity, &mut Enemy), Without<Boss>>,
+// ) {
+//     let d = time.delta();
+//     for (mut velocity, mut enemy) in enemy_query {
+//         let mut is_pop = false;
+//         if let Some(m) = enemy.moves.last_mut() {
+//             match m {
+//                 Move::UnitVelocity(v, timer) => {
+//                     if timer.is_finished() {
+//                         is_pop = true;
+//                         *velocity = LinearVelocity::ZERO;
+//                     } else {
+//                         timer.tick(d);
+//                         *velocity = *v;
+//                     }
+//                 } //_ => {},
+//             }
+//         } else {
+//             enemy.random_linear_moves(); // refill
+//         }
+//         enemy.moves.pop_if(|_| is_pop);
+//     }
+// }
 
-fn update_boss_moves(
-    time: Res<Time>,
-    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), With<Boss>>,
-) {
-    let d = time.delta();
-    for (mut velocity, mut enemy) in enemy_query {
-        let mut is_pop = false;
-        if let Some(m) = enemy.moves.last_mut() {
-            match m {
-                Move::UnitVelocity(v, timer) => {
-                    if timer.is_finished() {
-                        is_pop = true;
-                        *velocity = LinearVelocity::ZERO;
-                    } else {
-                        timer.tick(d);
-                        *velocity = *v;
-                    }
-                } //_ => {},
-            }
-        } else {
-            enemy.random_linear_moves(); // refill
-        }
-        enemy.moves.pop_if(|_| is_pop);
-    }
-}
+// fn update_boss_moves(
+//     time: Res<Time>,
+//     enemy_query: Query<(&mut LinearVelocity, &mut Enemy), With<Boss>>,
+// ) {
+//     let d = time.delta();
+//     for (mut velocity, mut enemy) in enemy_query {
+//         let mut is_pop = false;
+//         if let Some(m) = enemy.moves.last_mut() {
+//             match m {
+//                 Move::UnitVelocity(v, timer) => {
+//                     if timer.is_finished() {
+//                         is_pop = true;
+//                         *velocity = LinearVelocity::ZERO;
+//                     } else {
+//                         timer.tick(d);
+//                         *velocity = *v;
+//                     }
+//                 } //_ => {},
+//             }
+//         } else {
+//             enemy.random_linear_moves(); // refill
+//         }
+//         enemy.moves.pop_if(|_| is_pop);
+//     }
+// }
 
 impl Default for Enemy {
     fn default() -> Self {
@@ -214,6 +214,7 @@ pub struct MayaAssets {
 #[derive(Asset, Clone, Reflect)]
 pub struct MuraAssets {
     pub aseprite: Handle<Aseprite>,
+    pub enemy: Handle<Aseprite>,
     #[dependency]
     pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
@@ -226,6 +227,7 @@ pub struct MuraAssets {
 #[derive(Asset, Clone, Reflect)]
 pub struct NarakAssets {
     pub aseprite: Handle<Aseprite>,
+    pub enemy: Handle<Aseprite>,
     #[dependency]
     pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
@@ -279,14 +281,14 @@ fn enemy_shooting_system(
     mut cmd: Commands,
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
-    mut enemy_query: Query<(&Transform, &mut Enemy), Without<Player>>,
+    mut enemy_query: Query<(&Transform, &mut Enemy, Has<Boss>), Without<Player>>,
     anim_assets: If<Res<AnimationAssets>>,
 ) {
     let Ok(player_transform) = player_query.single() else {
         return; // No player, don't shoot
     };
     let player_pos = player_transform.translation.xy();
-    for (enemy_transform, mut shooter) in enemy_query.iter_mut() {
+    for (enemy_transform, mut shooter, is_boss) in enemy_query.iter_mut() {
         if shooter.attacks.is_empty() {
             continue;
         }
@@ -320,13 +322,23 @@ fn enemy_shooting_system(
                         rng.random_range(0.3..=1.0),
                         rng.random_range(0.3..=1.0),
                     );
-                    cmd.spawn(enemy_basic_bullet::<Hostile>(
-                        enemy_pos,
-                        direction,
-                        enemy_radius,
-                        &anim_assets,
-                        random_color,
-                    ));
+                    if is_boss {
+                        cmd.spawn(boss_basic_bullet::<Hostile>(
+                            enemy_pos,
+                            direction,
+                            enemy_radius,
+                            &anim_assets,
+                            random_color,
+                        ));
+                    } else {
+                        cmd.spawn(enemy_basic_bullet::<Hostile>(
+                            enemy_pos,
+                            direction,
+                            enemy_radius,
+                            &anim_assets,
+                            random_color,
+                        ));
+                    }
                 }
             }
         }
@@ -403,6 +415,47 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
         RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+pub fn narak_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Narak Enemy"),
+        Enemy::new_random(5)
+            .with_shooting_range(400.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Ring { count: 4 },
+                    ShootingPattern::Straight,
+                ],
+            }),
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.narak.enemy.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Static,
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
     )
@@ -574,7 +627,32 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Son Boss"),
         Boss,
-        Enemy::new_random(1),
+        Enemy::new_random(1)
+            .with_shooting_range(250.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(5.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 7 }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Random {
+                    count: 6,
+                    arc: 90.0_f32.to_radians(),
+                }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Spread {
+                        count: 6,
+                        arc: 90.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Ring { count: 4 },
+                ],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -593,10 +671,14 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         TeleportAbility {
             positions: vec![
                 Vec2::new(xy.x, xy.y),
-                Vec2::new(100.0, 100.0),
-                Vec2::new(200.0, 200.0),
+                Vec2::new(200.0, 100.0),
+                //Vec2::new(250.0, 60.0),
+                Vec2::new(224.0, -345.3),
+                Vec2::new(-244.1, -93.3),
+                Vec2::new(-160.3, 133.5),
             ],
-            timer: Timer::from_seconds(3.0, TimerMode::Repeating),
+            timer: Timer::from_seconds(20.0, TimerMode::Repeating),
+            current_index: 0,
         },
     )
 }
@@ -613,7 +695,7 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(2.0),
-            aseprite: anim_assets.enemies.seedlng_aseprite.clone(),
+            aseprite: anim_assets.enemies.mura.enemy.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -639,18 +721,18 @@ pub enum Move {
 pub struct TeleportAbility {
     pub positions: Vec<Vec2>,
     pub timer: Timer,
+    pub current_index: usize,
 }
 
 fn boss_teleport_system(time: Res<Time>, mut query: Query<(&mut Transform, &mut TeleportAbility)>) {
     for (mut transform, mut teleport) in query.iter_mut() {
         teleport.timer.tick(time.delta());
-
         if teleport.timer.just_finished() {
-            let rng = &mut rand::rng();
-            // Pick a random position from the predefined list
-            if let Some(random_pos) = teleport.positions.choose(rng) {
-                transform.translation.x = random_pos.x;
-                transform.translation.y = random_pos.y;
+            if !teleport.positions.is_empty() {
+                let next_pos = &teleport.positions[teleport.current_index];
+                transform.translation.x = next_pos.x;
+                transform.translation.y = next_pos.y;
+                teleport.current_index = (teleport.current_index + 1) % teleport.positions.len();
             }
         }
     }
