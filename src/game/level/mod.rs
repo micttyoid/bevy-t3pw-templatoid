@@ -35,7 +35,6 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
-/// TODO: Please name the levels according to the concept! ;o
 /// [`Level`] exists in both [`Screen::Gameplay`] and [`Screen::Loading`]
 /// When a condition meets at [`screens::gameplay::check_boss_and_player`],
 /// The next is level is set, and screen is set [`Screen::Loading`].
