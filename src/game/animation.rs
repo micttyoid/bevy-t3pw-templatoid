@@ -122,6 +122,7 @@ impl FromWorld for AnimationAssets {
             },
             enemies: EnemyAssets {
                 seedlng_aseprite: assets.load("textures/chars/seedling.aseprite"),
+                throw: assets.load("audio/sound_effects/enemies/throw.ogg"),
                 eye_enemy: EyeEnemyAssets {
                     aseprite: assets.load("textures/chars/eye-enemy.aseprite"),
                     damages: vec![
