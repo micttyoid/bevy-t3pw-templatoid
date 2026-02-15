@@ -2,6 +2,38 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="60" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="1">
  <tileset firstgid="1" name="Tiles-updated" tilewidth="16" tileheight="16" tilecount="200" columns="20">
   <image source="Tiles.png" width="320" height="160"/>
+  <tile id="50">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="3">
+    <object id="2" x="0" y="0" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="51">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="70">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
+  <tile id="71">
+   <properties>
+    <property name="ProjectilePassthrough" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="-0.000514106" y="-0.000514106" width="16" height="16"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <layer id="1" name="water" width="40" height="60">
   <data encoding="csv">
