@@ -20,6 +20,7 @@ use bevy::{
 
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::{game::movement::PassthroughHook, theme::palette::BACKGROUND_DARK};
 
@@ -55,6 +56,7 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+        app.add_plugins((EguiPlugin::default(), WorldInspectorPlugin::default()));
 
         // loading font as default - needs to be after default plugins are added
         load_internal_binary_asset!(
