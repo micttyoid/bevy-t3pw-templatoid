@@ -63,9 +63,9 @@ fn update_camera(
         let factor = (d / FOLLOW_CAMERA_TRESHOLD)
             .clamp(1.0, FOLLOW_CAMERA_MAX_SPEED / FOLLOW_CAMERA_BASE_SPEED);
         let effective_speed = FOLLOW_CAMERA_BASE_SPEED * factor;
-
-        let pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
+        let mut pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
         //camera_transform.translation.x = pos.x; // life hax so it dont go out of map
+        pos.y = pos.y.clamp(-300.0, 300.0);
         camera_transform.translation.y = pos.y;
     }
 }
