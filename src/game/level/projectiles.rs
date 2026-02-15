@@ -20,6 +20,13 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
+#[derive(Asset, Clone, Reflect)]
+pub struct ProjectileAssets {
+    #[dependency]
+    pub ricochet: Vec<Handle<AudioSource>>,
+    pub bullet: Handle<Image>,
+}
+
 /// Tile property
 #[derive(Component)]
 #[require(ActiveCollisionHooks::FILTER_PAIRS)]

@@ -13,6 +13,11 @@ use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 
 pub const BOSS_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
+pub const TUTORIAL_BOSS_NAME: &str = "Tutorial Boss";
+pub const GATES_NAME: &str = "Gate Boss";
+pub const MAYA_NAME: &str = "Eye Boss";
+pub const MURA_NAME: &str = "Elephant Boss";
+pub const NARAK_NAME: &str = "Son Boss";
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -106,7 +111,7 @@ pub struct NarakAssets {
 // boss 1
 pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
-        Name::new("Gate Boss"),
+        Name::new(GATES_NAME),
         Boss,
         Enemy::new_random(1),
         AseAnimation {
@@ -131,7 +136,7 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
-        Name::new("Eye Boss"),
+        Name::new(MAYA_NAME),
         Boss,
         Enemy::new_random(1)
             .with_shooting_range(300.)
@@ -183,7 +188,7 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
-        Name::new("Elephant Boss"),
+        Name::new(MURA_NAME),
         Boss,
         Enemy::new_random(1)
             .with_shooting_range(400.)
@@ -232,7 +237,7 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
-        Name::new("Son Boss"),
+        Name::new(NARAK_NAME),
         Boss,
         Enemy::new_random(1)
             .with_shooting_range(250.)
@@ -290,11 +295,10 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-#[allow(dead_code)]
-pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
-        Name::new("Basic Boss"),
+        Name::new(TUTORIAL_BOSS_NAME),
         Boss,
         Enemy::new_random(1),
         AseAnimation {

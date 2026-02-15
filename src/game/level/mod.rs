@@ -13,7 +13,7 @@ use crate::{
     game::{
         animation::AnimationAssets,
         level::{
-            bosses::{basic_boss, elephant_boss, eye_boss, gate_boss, son_boss},
+            bosses::{elephant_boss, eye_boss, gate_boss, son_boss, tutorial_boss},
             enemies::{basic_enemy, eye_enemy, narak_enemy},
         },
         player::{PLAYER_Z_TRANSLATION, player},
@@ -158,7 +158,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_boss((-30., 180.).into(), &anim_assets),
+                tutorial_boss((-30., 180.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
