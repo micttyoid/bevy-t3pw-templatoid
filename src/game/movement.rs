@@ -20,7 +20,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (apply_movement, apply_screen_wrap)
+        (apply_movement)
             .chain()
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
@@ -68,6 +68,7 @@ fn apply_movement(mut movement_query: Query<(&MovementController, &mut LinearVel
     }
 }
 
+/*
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ScreenWrap;
@@ -84,3 +85,4 @@ fn apply_screen_wrap(
         transform.translation = wrapped.extend(transform.translation.z);
     }
 }
+*/

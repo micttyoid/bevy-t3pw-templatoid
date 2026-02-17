@@ -8,11 +8,7 @@ use avian2d::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
-    game::{
-        animation::PlayerAnimation,
-        level::PlayerMarker,
-        movement::{MovementController, ScreenWrap},
-    },
+    game::{animation::PlayerAnimation, level::PlayerMarker, movement::MovementController},
 };
 
 pub const PLAYER_Z_TRANSLATION: f32 = 100.;
@@ -61,7 +57,6 @@ pub fn player(
             max_speed,
             ..default()
         },
-        ScreenWrap,
         player_animation,
         PlayerMarker,
         LockedAxes::new().lock_rotation(),
@@ -116,7 +111,7 @@ impl FromWorld for PlayerAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             ducky: assets.load_with_settings(
-                "images/ducky.png",
+                "textures/chars/ducky.png",
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve pixel art style.
                     settings.sampler = ImageSampler::nearest();
