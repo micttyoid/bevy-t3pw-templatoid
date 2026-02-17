@@ -13,11 +13,9 @@
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use crate::{AppSystems, PausableSystems};
 use avian2d::prelude::*;
-use crate::{
-    AppSystems, PausableSystems,
-};
+use bevy::{prelude::*, window::PrimaryWindow};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -64,9 +62,7 @@ fn apply_movement(
 }
 */
 
-fn apply_movement(
-    mut movement_query: Query<(&MovementController, &mut LinearVelocity,)>,
-) {
+fn apply_movement(mut movement_query: Query<(&MovementController, &mut LinearVelocity)>) {
     for (controller, mut rb_vel) in movement_query.iter_mut() {
         rb_vel.0 = controller.max_speed * controller.intent; // normal
     }

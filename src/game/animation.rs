@@ -5,48 +5,67 @@
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
 use bevy::prelude::*;
-use bevy_aseprite_ultra::{
-    AsepriteUltraPlugin,
-    prelude::{AnimationEvents, AseAnimation},
-};
-use rand::seq::IndexedRandom;
+use rand::prelude::*;
+use std::time::Duration;
 
 use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
-    game::player::{Player, PlayerAssets},
+    game::{movement::MovementController, player::PlayerAssets},
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(AsepriteUltraPlugin);
     // Animate and play sound effects based on controls.
     app.add_systems(
         Update,
-        (update_animation_state, trigger_step_sound_effect)
-            .chain()
-            .in_set(AppSystems::Update)
+        (
+            update_animation_timer.in_set(AppSystems::TickTimers),
+            (
+                update_animation_movement,
+                update_animation_atlas,
+                trigger_step_sound_effect,
+            )
+                .chain()
+                .in_set(AppSystems::Update),
+        )
             .in_set(PausableSystems),
     );
 }
 
+/// Update the animation timer.
+fn update_animation_timer(time: Res<Time>, mut query: Query<&mut PlayerAnimation>) {
+    for mut animation in &mut query {
+        animation.update_timer(time.delta());
+    }
+}
+
 /// Update the sprite direction and animation state (idling/walking).
-fn update_animation_state(mut anim_q: Query<(&mut AseAnimation, &PlayerAnimation), With<Player>>) {
-    for (mut ase_sprite_animation, player) in anim_q.iter_mut() {
-        match player.state {
-            PlayerAnimationState::Idle => {
-                ase_sprite_animation.animation.play_loop("idle");
-            }
-            PlayerAnimationState::Walk => match player.direction {
-                PlayerDirection::Up => {
-                    ase_sprite_animation.animation.play_loop("walk-up");
-                }
-                PlayerDirection::Down => {
-                    ase_sprite_animation.animation.play_loop("walk-down");
-                }
-                PlayerDirection::Left | PlayerDirection::Right => {
-                    ase_sprite_animation.animation.play_loop("walk-right");
-                }
-            },
+fn update_animation_movement(
+    mut player_query: Query<(&MovementController, &mut Sprite, &mut PlayerAnimation)>,
+) {
+    for (controller, mut sprite, mut animation) in &mut player_query {
+        let dx = controller.intent.x;
+        if dx != 0.0 {
+            sprite.flip_x = dx < 0.0;
+        }
+
+        let animation_state = if controller.intent == Vec2::ZERO {
+            PlayerAnimationState::Idling
+        } else {
+            PlayerAnimationState::Walking
+        };
+        animation.update_state(animation_state);
+    }
+}
+
+/// Update the texture atlas to reflect changes in the animation.
+fn update_animation_atlas(mut query: Query<(&PlayerAnimation, &mut Sprite)>) {
+    for (animation, mut sprite) in &mut query {
+        let Some(atlas) = sprite.texture_atlas.as_mut() else {
+            continue;
+        };
+        if animation.changed() {
+            atlas.index = animation.get_atlas_index();
         }
     }
 }
@@ -54,48 +73,101 @@ fn update_animation_state(mut anim_q: Query<(&mut AseAnimation, &PlayerAnimation
 /// If the player is moving, play a step sound effect synchronized with the
 /// animation.
 fn trigger_step_sound_effect(
-    mut cmd: Commands,
+    mut commands: Commands,
     player_assets: If<Res<PlayerAssets>>,
-    mut anim_q: Query<&PlayerAnimation>,
-    mut anim_msg: MessageReader<AnimationEvents>,
+    mut step_query: Query<&PlayerAnimation>,
 ) {
-    for msg in anim_msg.read() {
-        for animation in &mut anim_q {
-            if animation.state == PlayerAnimationState::Walk {
-                match msg {
-                    AnimationEvents::LoopCycleFinished(_entity) => {
-                        let rng = &mut rand::rng();
-                        let random_step = player_assets.steps.choose(rng).unwrap().clone();
-                        cmd.spawn(sound_effect(random_step));
-                    }
-                    AnimationEvents::Finished(_entity) => (),
-                }
-            }
+    for animation in &mut step_query {
+        if animation.state == PlayerAnimationState::Walking
+            && animation.changed()
+            && (animation.frame == 2 || animation.frame == 5)
+        {
+            let rng = &mut rand::rng();
+            let random_step = player_assets.steps.choose(rng).unwrap().clone();
+            commands.spawn(sound_effect(random_step));
         }
     }
 }
 
 /// Component that tracks player's animation state.
-/// It is tightly bound to aseprite animation we use.
+/// It is tightly bound to the texture atlas we use.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct PlayerAnimation {
-    pub state: PlayerAnimationState,
-    pub direction: PlayerDirection,
+    timer: Timer,
+    frame: usize,
+    state: PlayerAnimationState,
 }
 
-#[derive(Reflect, PartialEq, Default)]
+#[derive(Reflect, PartialEq)]
 pub enum PlayerAnimationState {
-    Walk,
-    #[default]
-    Idle,
+    Idling,
+    Walking,
 }
 
-#[derive(Reflect, PartialEq, Default)]
-pub enum PlayerDirection {
-    #[default]
-    Up,
-    Down,
-    Left,
-    Right,
+impl PlayerAnimation {
+    /// The number of idle frames.
+    const IDLE_FRAMES: usize = 2;
+    /// The duration of each idle frame.
+    const IDLE_INTERVAL: Duration = Duration::from_millis(500);
+    /// The number of walking frames.
+    const WALKING_FRAMES: usize = 6;
+    /// The duration of each walking frame.
+    const WALKING_INTERVAL: Duration = Duration::from_millis(50);
+
+    fn idling() -> Self {
+        Self {
+            timer: Timer::new(Self::IDLE_INTERVAL, TimerMode::Repeating),
+            frame: 0,
+            state: PlayerAnimationState::Idling,
+        }
+    }
+
+    fn walking() -> Self {
+        Self {
+            timer: Timer::new(Self::WALKING_INTERVAL, TimerMode::Repeating),
+            frame: 0,
+            state: PlayerAnimationState::Walking,
+        }
+    }
+
+    pub fn new() -> Self {
+        Self::idling()
+    }
+
+    /// Update animation timers.
+    pub fn update_timer(&mut self, delta: Duration) {
+        self.timer.tick(delta);
+        if !self.timer.is_finished() {
+            return;
+        }
+        self.frame = (self.frame + 1)
+            % match self.state {
+                PlayerAnimationState::Idling => Self::IDLE_FRAMES,
+                PlayerAnimationState::Walking => Self::WALKING_FRAMES,
+            };
+    }
+
+    /// Update animation state if it changes.
+    pub fn update_state(&mut self, state: PlayerAnimationState) {
+        if self.state != state {
+            match state {
+                PlayerAnimationState::Idling => *self = Self::idling(),
+                PlayerAnimationState::Walking => *self = Self::walking(),
+            }
+        }
+    }
+
+    /// Whether animation changed this tick.
+    pub fn changed(&self) -> bool {
+        self.timer.is_finished()
+    }
+
+    /// Return sprite index in the atlas.
+    pub fn get_atlas_index(&self) -> usize {
+        match self.state {
+            PlayerAnimationState::Idling => self.frame,
+            PlayerAnimationState::Walking => 6 + self.frame,
+        }
+    }
 }

@@ -3,12 +3,14 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
-    Pause, game::level::spawn_level, menus::Menu, screens::Screen,
-    utils::tiled::spawn_tiled_map,
+    Pause, game::level::spawn_level, menus::Menu, screens::Screen, utils::tiled::spawn_tiled_map,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Gameplay), (spawn_tiled_map::<2>, spawn_level).chain());
+    app.add_systems(
+        OnEnter(Screen::Gameplay),
+        (spawn_tiled_map::<2>, spawn_level).chain(),
+    );
 
     // Toggle pause on key press.
     app.add_systems(

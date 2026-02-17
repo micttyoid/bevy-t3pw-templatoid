@@ -18,47 +18,38 @@ use std::io::Cursor;
 use std::path::Path;
 use std::sync::Arc;
 
-use bevy::{
-    asset::{
-        AssetLoader,
-        io::Reader,
+use avian2d::{
+    parry::{
+        math::{Isometry, Point, Real},
+        shape::SharedShape,
     },
+    prelude::*,
+};
+use bevy::{
+    asset::{AssetLoader, io::Reader},
     log::{info, warn},
     platform::collections::HashMap,
     prelude::*,
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
-use avian2d::{
-        parry::{
-        math::{Isometry, Point, Real},
-        shape::SharedShape,
-    },
-    prelude::*,
-};
 use thiserror::Error;
-use tiled::{
-    ObjectShape,
-};
+use tiled::ObjectShape;
 
 use crate::{
     // TODO: asset_tracking::LoadResource,
     game::player::PLAYER_Z_TRANSLATION,
-    utils::tiled::shaper::{
-        PreSharedShape,
-        shaper,
-    },
+    utils::tiled::shaper::{PreSharedShape, shaper},
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app
-        .init_asset::<TiledMap>()
+    app.init_asset::<TiledMap>()
         .register_asset_loader(TiledLoader)
         .add_systems(Update, process_loaded_maps);
 }
 
 /// [`crate:::screens::gameplay`]
-pub fn spawn_tiled_map <const MAP_NUMBER: usize>(
+pub fn spawn_tiled_map<const MAP_NUMBER: usize>(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
@@ -67,7 +58,7 @@ pub fn spawn_tiled_map <const MAP_NUMBER: usize>(
         2 => "map2.tile-16x16.tmx",
         _ => {
             panic!("No such map number exists");
-        },
+        }
     };
     commands.spawn(TiledMapBundle {
         tiled_map: TiledMapHandle(asset_server.load(asset_path)),
@@ -80,7 +71,7 @@ pub struct TiledMap {
     pub map: tiled::Map,
     //pub pre_colliders: HashMap<tiled::TileId, Vec<(f32, f32, f32, f32)>>, // by tiles
     pub pre_colliders: HashMap<tiled::TileId, PreSharedShape>,
-    
+
     pub tilemap_textures: HashMap<usize, TilemapTexture>,
 
     // The offset into the tileset_images for each tile id within each tileset.
@@ -168,7 +159,10 @@ impl AssetLoader for TiledLoader {
             for (tile_id, tile_data) in tileset.tiles() {
                 if let Some(obj_layer_data_collision) = &tile_data.collision {
                     //let mut rects = Vec::new();
-                    let pre_shared_shape = PreSharedShape::from_object_data(tile_id, obj_layer_data_collision.object_data());
+                    let pre_shared_shape = PreSharedShape::from_object_data(
+                        tile_id,
+                        obj_layer_data_collision.object_data(),
+                    );
                     /*
                     for collision_obj_data in  {
                         //objs.push(*collision_obj_data);
@@ -455,31 +449,57 @@ fn process_loaded_maps(
                                 let tile_height = tileset.tile_height as f32;
                                 let half_map_width = tiled_map.map.width as f32 / 2.0;
                                 let half_map_height = tiled_map.map.height as f32 / 2.0;
-                                
+
                                 let mut colliders = Vec::<Entity>::new(); // This has no use for now
-                                if let Some(pre_shared_shape) = tiled_map.pre_colliders.get(&layer_tile.id()) {
+                                if let Some(pre_shared_shape) =
+                                    tiled_map.pre_colliders.get(&layer_tile.id())
+                                {
                                     for obj in pre_shared_shape.iter() {
                                         use ObjectShape::*;
                                         match &obj.shape {
-                                            Rect {width, height} => colliders.push(
-                                                commands.entity(tile_entity).with_child((
-                                                    Transform::from_translation(
-                                                        Vec3::new(tile_width * (x as f32 - half_map_width), tile_height * (y as f32 - half_map_height), 0.) +
-                                                        Vec3::new(obj.x + width/2.0, obj.y + height/2.0, PLAYER_Z_TRANSLATION),
-                                                    ),
-                                                    Collider::from(shaper(&obj.shape)),
-                                                    ColliderOf { body: layer_entity },
-                                                )).id()
+                                            Rect { width, height } => colliders.push(
+                                                commands
+                                                    .entity(tile_entity)
+                                                    .with_child((
+                                                        Transform::from_translation(
+                                                            Vec3::new(
+                                                                tile_width
+                                                                    * (x as f32 - half_map_width),
+                                                                tile_height
+                                                                    * (y as f32 - half_map_height),
+                                                                0.,
+                                                            ) + Vec3::new(
+                                                                obj.x + width / 2.0,
+                                                                obj.y + height / 2.0,
+                                                                PLAYER_Z_TRANSLATION,
+                                                            ),
+                                                        ),
+                                                        Collider::from(shaper(&obj.shape)),
+                                                        ColliderOf { body: layer_entity },
+                                                    ))
+                                                    .id(),
                                             ),
-                                            _ =>  colliders.push(
-                                                commands.entity(tile_entity).with_child((
-                                                    Transform::from_translation(
-                                                        Vec3::new(tile_width * (x as f32 - half_map_width), tile_height * (y as f32 - half_map_height), 0.) +
-                                                        Vec3::new(obj.x, obj.y, PLAYER_Z_TRANSLATION),
-                                                    ),
-                                                    Collider::from(shaper(&obj.shape)),
-                                                    ColliderOf { body: layer_entity },
-                                                )).id()
+                                            _ => colliders.push(
+                                                commands
+                                                    .entity(tile_entity)
+                                                    .with_child((
+                                                        Transform::from_translation(
+                                                            Vec3::new(
+                                                                tile_width
+                                                                    * (x as f32 - half_map_width),
+                                                                tile_height
+                                                                    * (y as f32 - half_map_height),
+                                                                0.,
+                                                            ) + Vec3::new(
+                                                                obj.x,
+                                                                obj.y,
+                                                                PLAYER_Z_TRANSLATION,
+                                                            ),
+                                                        ),
+                                                        Collider::from(shaper(&obj.shape)),
+                                                        ColliderOf { body: layer_entity },
+                                                    ))
+                                                    .id(),
                                             ),
                                         }
                                     }
@@ -498,7 +518,11 @@ fn process_loaded_maps(
                                 tile_size,
                                 spacing: tile_spacing,
                                 anchor: TilemapAnchor::Center,
-                                transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32),
+                                transform: Transform::from_xyz(
+                                    offset_x,
+                                    -offset_y,
+                                    layer_index as f32,
+                                ),
                                 map_type,
                                 render_settings: *render_settings,
                                 ..Default::default()

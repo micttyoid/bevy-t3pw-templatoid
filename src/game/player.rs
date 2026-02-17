@@ -1,13 +1,16 @@
-use bevy::prelude::*;
+use bevy::{
+    image::{ImageLoaderSettings, ImageSampler},
+    prelude::*,
+};
 
 use avian2d::prelude::*;
-use bevy_aseprite_ultra::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     game::{
-        animation::{PlayerAnimation, PlayerAnimationState, PlayerDirection},
+        animation::PlayerAnimation,
+        level::PlayerMarker,
         movement::{MovementController, ScreenWrap},
     },
 };
@@ -33,27 +36,34 @@ pub(super) fn plugin(app: &mut App) {
 pub struct Player;
 
 /// The player character.
-pub fn player(max_speed: f32, player_assets: &PlayerAssets) -> impl Bundle {
+pub fn player(
+    max_speed: f32,
+    player_assets: &PlayerAssets,
+    texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
+) -> impl Bundle {
+    // A texture atlas is a way to split a single image into a grid of related images.
+    // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let player_animation = PlayerAnimation::new();
+
     (
         Name::new("Player"),
         Player,
-        PlayerAnimation {
-            state: PlayerAnimationState::default(),
-            direction: PlayerDirection::default(),
-        },
-        AseAnimation {
-            animation: Animation::tag("walk-up")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(2.0),
-            aseprite: player_assets.player.clone(),
-        },
-        Sprite::default(),
+        Sprite::from_atlas_image(
+            player_assets.ducky.clone(),
+            TextureAtlas {
+                layout: texture_atlas_layout,
+                index: player_animation.get_atlas_index(),
+            },
+        ),
         MovementController {
             max_speed,
             ..default()
         },
         ScreenWrap,
+        player_animation,
+        PlayerMarker,
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(0., 0., PLAYER_Z_TRANSLATION),
         // TODO: possibly kinematic later that should update `movement::apply_movement` along
@@ -65,58 +75,38 @@ pub fn player(max_speed: f32, player_assets: &PlayerAssets) -> impl Bundle {
 
 fn record_player_directional_input(
     input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<
-        (
-            &mut MovementController,
-            &mut PlayerAnimation,
-            &mut Transform,
-        ),
-        With<Player>,
-    >,
+    mut controller_query: Query<&mut MovementController, With<Player>>,
 ) {
-    for (mut controller, mut animation, mut transform) in &mut query {
-        let mut pressed_flag: bool = false;
-        // Collect directional input.
-        let mut intent = Vec2::ZERO;
-        if input.pressed(KeyCode::KeyW) {
-            intent.y += 1.0;
-            animation.direction = PlayerDirection::Up;
-            pressed_flag = true;
-        }
-        if input.pressed(KeyCode::KeyS) {
-            intent.y -= 1.0;
-            animation.direction = PlayerDirection::Down;
-            pressed_flag = true;
-        }
-        if input.pressed(KeyCode::KeyA) {
-            intent.x -= 1.0;
-            animation.direction = PlayerDirection::Left;
-            pressed_flag = true;
-            transform.scale.x = -1.;
-        }
-        if input.pressed(KeyCode::KeyD) {
-            intent.x += 1.0;
-            animation.direction = PlayerDirection::Right;
-            pressed_flag = true;
-            transform.scale.x = 1.;
-        }
-        // Normalize intent so that diagonal movement is the same speed as horizontal / vertical.
-        // This should be omitted if the input comes from an analog stick instead.
-        let intent = intent.normalize_or_zero();
+    // Collect directional input.
+    let mut intent = Vec2::ZERO;
+    if input.pressed(KeyCode::KeyW) {
+        intent.y += 1.0;
+    }
+    if input.pressed(KeyCode::KeyS) {
+        intent.y -= 1.0;
+    }
+    if input.pressed(KeyCode::KeyA) {
+        intent.x -= 1.0;
+    }
+    if input.pressed(KeyCode::KeyD) {
+        intent.x += 1.0;
+    }
+
+    // Normalize intent so that diagonal movement is the same speed as horizontal / vertical.
+    // This should be omitted if the input comes from an analog stick instead.
+    let intent = intent.normalize_or_zero();
+
+    // Apply movement intent to controllers.
+    for mut controller in &mut controller_query {
         controller.intent = intent;
-        if pressed_flag {
-            animation.state = PlayerAnimationState::Walk;
-        } else {
-            animation.state = PlayerAnimationState::Idle;
-        }
     }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct PlayerAssets {
-    //#[dependancy]
-    player: Handle<Aseprite>,
+    #[dependency]
+    ducky: Handle<Image>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
 }
@@ -125,7 +115,13 @@ impl FromWorld for PlayerAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            player: assets.load("textures/chars/player.aseprite"),
+            ducky: assets.load_with_settings(
+                "images/ducky.png",
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve pixel art style.
+                    settings.sampler = ImageSampler::nearest();
+                },
+            ),
             steps: vec![
                 assets.load("audio/sound_effects/step1.ogg"),
                 assets.load("audio/sound_effects/step2.ogg"),

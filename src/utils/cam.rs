@@ -1,16 +1,10 @@
-use bevy::{
-    prelude::*,
-    camera::*,
-};
+use bevy::{camera::*, prelude::*};
 
-use crate::{
-    game::player::Player
-};
+use crate::game::player::Player;
 
-pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0;  // Determine based on the character speed
+pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0; // Determine based on the character speed
 pub const FOLLOW_CAMERA_MAX_SPEED: f32 = 1000.0;
 pub const FOLLOW_CAMERA_BASE_SPEED: f32 = 4.5;
-
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
@@ -41,9 +35,10 @@ fn update_camera(
         let d = camera_pos.distance(player_pos);
 
         // smoothing
-        let factor = (d / FOLLOW_CAMERA_TRESHOLD).clamp(1.0, FOLLOW_CAMERA_MAX_SPEED/ FOLLOW_CAMERA_BASE_SPEED);
+        let factor = (d / FOLLOW_CAMERA_TRESHOLD)
+            .clamp(1.0, FOLLOW_CAMERA_MAX_SPEED / FOLLOW_CAMERA_BASE_SPEED);
         let effective_speed = FOLLOW_CAMERA_BASE_SPEED * factor;
-        
+
         let pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
         camera_transform.translation.x = pos.x;
         camera_transform.translation.y = pos.y;
