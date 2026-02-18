@@ -1,7 +1,7 @@
 # Arts
 
 ```yml
-files: dungeon_gathering_*
+files: dg_
 ```
 
 *** Dungeon Gathering - Under The Castle Set v1.5 Full Version ***
@@ -9,9 +9,7 @@ files: dungeon_gathering_*
 Dungeon Gathering is an original idea by Jose Javier (SnowHex)
 
 ```yml
-files: textures/chars/prototype.png
+files: textures/chars/eris_esra-template-20x20.png
 ```
 
-**pixel-rpg-free-npc** by [snoblin](https://snoblin.itch.io/)
-
-https://snoblin.itch.io/pixel-rpg-free-npc
+[Character Template Pack](https://erisesra.itch.io/character-templates-pack) by Eris Esra
