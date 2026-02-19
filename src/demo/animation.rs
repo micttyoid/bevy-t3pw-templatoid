@@ -84,10 +84,7 @@ fn trigger_step_sound_effect(
     mut step_query: Query<&PlayerAnimation>,
 ) {
     for animation in &mut step_query {
-        if animation.is_walking()
-            && animation.changed()
-            && animation.frame == 1
-        {
+        if animation.is_walking() && animation.changed() && animation.frame == 1 {
             let rng = &mut rand::rng();
             let random_step = player_assets.steps.choose(rng).unwrap().clone();
             commands.spawn(sound_effect(random_step));
@@ -209,7 +206,7 @@ impl PlayerAnimation {
     }
     */
 
-    /// Update animation state if it changes: same state (depth 1) but different orientation (depth 2)
+    /// Update animation state if it changes.
     pub fn update_state(&mut self, state: PlayerAnimationState) {
         use PlayerAnimationState::*;
         if self.state != state {
