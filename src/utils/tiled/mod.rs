@@ -15,18 +15,20 @@
 mod shaper;
 
 use std::io::Cursor;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use avian2d::{
+    /*
     parry::{
         math::{Isometry, Point, Real},
         shape::SharedShape,
     },
+    */
     prelude::*,
 };
 use bevy::{
-    asset::{AssetLoader, io::Reader},
+    asset::{AssetLoader, AssetPath, io::Reader},
     log::{info, warn},
     platform::collections::HashMap,
     prelude::*,
@@ -54,8 +56,8 @@ pub fn spawn_tiled_map<const MAP_NUMBER: usize>(
     asset_server: Res<AssetServer>,
 ) {
     let asset_path = match MAP_NUMBER {
-        1 => "map1.tile-16x16.tmx",
-        2 => "map2.tile-16x16.tmx",
+        1 => "tiled/map1.tile-16x16.tmx",
+        2 => "tiled/map2.tile-16x16.tmx",
         _ => {
             panic!("No such map number exists");
         }
@@ -113,6 +115,8 @@ impl tiled::ResourceReader for BytesResourceReader {
     type Resource = Cursor<Arc<[u8]>>;
     type Error = std::io::Error;
 
+    // For tileset(tsx), through `load_tmx_map` (not load_tsx_tileset), `read_from` is invoked at: `tiled::parse::xml::tileset::parse_tileset`
+    // The error can be handled: (macro) `tiled::util::parse_tag`
     fn read_from(&mut self, _path: &Path) -> std::result::Result<Self::Resource, Self::Error> {
         // In this case, the path is ignored because the byte data is already provided.
         Ok(Cursor::new(self.bytes.clone()))
@@ -147,13 +151,13 @@ impl AssetLoader for TiledLoader {
             tiled::DefaultResourceCache::new(),
             BytesResourceReader::new(&bytes),
         );
-        // This is currently using `xml-rs`
+
+        // `load_tmx_map` is a contextualized `tiled::parse::xml::parse_map`
+        // where, given reader for "map", this invokes `Map::parse_xml` (using crate `xml-rs`)
         let map = loader
             .load_tmx_map(load_context.path().path())
             .map_err(|e| std::io::Error::other(format!("Could not load TMX map: {e}")))?;
 
-        // TODO: bundle-wise solution
-        //let mut pre_colliders = HashMap::<tiled::TileId, Vec<(f32, f32, f32, f32)>>::new();
         let mut pre_colliders = HashMap::<tiled::TileId, PreSharedShape>::new();
         for tileset in map.tilesets() {
             for (tile_id, tile_data) in tileset.tiles() {
@@ -194,6 +198,9 @@ impl AssetLoader for TiledLoader {
         let mut tile_image_offsets = HashMap::default();
 
         for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+            let is_external_tileset =
+                tileset.source.extension().unwrap().to_ascii_lowercase() == "tsx";
+
             let tilemap_texture = match &tileset.image {
                 None => {
                     #[cfg(feature = "atlas")]
@@ -219,6 +226,7 @@ impl AssetLoader for TiledLoader {
                                 info!(
                                     "Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})"
                                 );
+
                                 let texture: Handle<Image> = load_context.load(asset_path.clone());
                                 tile_image_offsets
                                     .insert((tileset_index, tile_id), tile_images.len() as u32);
@@ -230,12 +238,35 @@ impl AssetLoader for TiledLoader {
                     }
                 }
                 Some(img) => {
-                    // The load context path is the TMX file itself. If the file is at the root of the
-                    // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                    let asset_path = load_context
-                        .path()
-                        .resolve_embed(&img.source.to_string_lossy())
-                        .expect("The asset load context was empty.");
+                    // This the quickest i can. For the best, something should be done at the crate `rs-tiled`
+                    let asset_path = if img.source.is_relative() {
+                        if is_external_tileset {
+                            let fmt = format!(
+                                "Unloadable combination of paths(map, external tileset, image): {:?} {:?} {:?}",
+                                &map.source, &tileset.source, &img.source
+                            );
+                            if let Ok(b) = common_parent(&tileset.source, &img.source)
+                                && let Ok(orphanized_path) = img.source.strip_prefix(b)
+                            {
+                                AssetPath::from(
+                                    map.source
+                                        .parent()
+                                        .unwrap_or_else(|| panic!("{}", fmt))
+                                        .join(orphanized_path)
+                                        .to_path_buf(),
+                                )
+                            } else {
+                                panic!("{}", fmt);
+                            }
+                        } else {
+                            AssetPath::from(img.source.clone())
+                        }
+                    } else {
+                        load_context
+                            .path()
+                            .resolve_embed(&img.source.to_string_lossy())
+                            .expect("The asset load context was empty.")
+                    };
 
                     info!(?asset_path);
                     let texture: Handle<Image> = load_context.load(asset_path.clone());
@@ -262,6 +293,24 @@ impl AssetLoader for TiledLoader {
         static EXTENSIONS: &[&str] = &["tmx"];
         EXTENSIONS
     }
+}
+
+/// Find the common parent directory
+/// "/foo/bar/one", "/foo/bar/two" => "/foo/bar"
+fn common_parent(path1: &PathBuf, path2: &PathBuf) -> Result<PathBuf, ()> {
+    let mut common = PathBuf::new();
+    let mut found_common = false;
+
+    for (c1, c2) in path1.components().zip(path2.components()) {
+        if c1 == c2 {
+            common.push(c1.as_os_str());
+            found_common = true;
+        } else {
+            break;
+        }
+    }
+
+    if found_common { Ok(common) } else { Err(()) }
 }
 
 fn process_loaded_maps(

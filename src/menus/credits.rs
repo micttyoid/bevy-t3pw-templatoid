@@ -39,8 +39,9 @@ fn created_by() -> impl Bundle {
 
 fn assets() -> impl Bundle {
     grid(vec![
-        ["Character sprite", "by Eris Esra"],
         ["Button SFX", "CC0 by Jaszunio15"],
+        ["Character sprite", "by Eris Esra"],
+        ["Dungeon Gathering tiles", "by SnowHex"],
         ["Music", "CC BY 3.0 by Kevin MacLeod"],
         [
             "Bevy logo",
