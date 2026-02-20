@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub const PLAYER_Z_TRANSLATION: f32 = 100.;
-pub const PLAYER_COLLIDER_RADIUS: f32 = 6.;
+pub const PLAYER_COLLIDER_RADIUS: f32 = 10.0;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PlayerAssets>();

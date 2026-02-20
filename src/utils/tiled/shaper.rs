@@ -1,17 +1,21 @@
 //! Don't look like Bevy until load
-use std::io::Cursor;
-use std::path::Path;
-use std::sync::Arc;
+//use std::io::Cursor;
+//use std::path::Path;
+//use std::sync::Arc;
 
 use avian2d::{
     parry::{
-        math::Isometry,
+        //math::Isometry,
         na::{Const, Isometry2, OPoint},
         shape::{Compound, SharedShape},
-        transformation::vhacd::{VHACD, VHACDParameters},
+        transformation::vhacd::{
+            //VHACD,
+            VHACDParameters,
+        },
     },
-    prelude::*,
+    //prelude::*,
 };
+/*
 use bevy::{
     asset::{AssetLoader, io::Reader},
     log::{info, warn},
@@ -19,14 +23,13 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
 };
-use bevy_ecs_tilemap::prelude::*;
-use thiserror::Error;
+*/
+//use bevy_ecs_tilemap::prelude::*;
+//use thiserror::Error;
 use tiled::{ObjectData, ObjectShape};
 
-use crate::{
-    // TODO: asset_tracking::LoadResource,
-    demo::player::PLAYER_Z_TRANSLATION,
-};
+// TODO: asset_tracking::LoadResource,
+//use crate::demo::player::PLAYER_Z_TRANSLATION;
 
 type Point2 = OPoint<f32, Const<2>>;
 
@@ -35,7 +38,10 @@ pub fn shaper(shape: &ObjectShape) -> SharedShape {
     match shape {
         Rect { width, height } => SharedShape::cuboid(width / 2.0, height / 2.0),
         // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#ellipse
-        Ellipse { width, height } => {
+        Ellipse {
+            width: _,
+            height: _,
+        } => {
             unimplemented!();
         }
         // (Editor) lining with the "Polygon" option, do not finish it
@@ -86,7 +92,10 @@ pub fn get_shared_shape(shape: &ObjectShape) -> Option<SharedShape> {
     match shape {
         Rect { width, height } => Some(SharedShape::cuboid(width / 2.0, height / 2.0)),
         // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#ellipse
-        Ellipse { width, height } => {
+        Ellipse {
+            width: _,
+            height: _,
+        } => {
             unimplemented!();
         }
         // (Editor) lining with the "Polygon" option, do not finish it

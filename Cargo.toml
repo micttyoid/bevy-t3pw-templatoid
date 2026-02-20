@@ -32,6 +32,9 @@ dev = [
 ]
 dev_native = ["bevy/file_watcher", "bevy/embedded_watcher"]
 
+# TODO: check the tilemap crate-side
+atlas = []
+
 [package.metadata.bevy_cli.release]
 default-features = false
 

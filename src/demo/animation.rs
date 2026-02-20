@@ -4,9 +4,11 @@
 //! - [Sprite animation](https://github.com/bevyengine/bevy/blob/latest/examples/2d/sprite_animation.rs)
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
-use bevy::{math::VectorSpace, prelude::*};
+use bevy::{
+    //math::VectorSpace,
+    prelude::*,
+};
 use rand::prelude::*;
-use std::ops::Add;
 use std::time::Duration;
 
 use crate::{
@@ -208,7 +210,6 @@ impl PlayerAnimation {
 
     /// Update animation state if it changes.
     pub fn update_state(&mut self, state: PlayerAnimationState) {
-        use PlayerAnimationState::*;
         if self.state != state {
             match &state {
                 PlayerAnimationState::Idling(dir) => *self = Self::idling(dir.clone()),

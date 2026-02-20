@@ -1,13 +1,12 @@
-use avian2d::prelude::*;
+//use avian2d::prelude::*;
 use bevy::prelude::*;
-use tiled::PropertyValue;
+//use tiled::PropertyValue;
 
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
     demo::player::{PlayerAssets, player},
     screens::Screen,
-    utils::tiled as utils_tiled,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -27,7 +26,7 @@ impl FromWorld for LevelAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            music: assets.load("audio/music/Fluffing A Duck.ogg"),
+            music: assets.load("audio/music/Cozy.ogg"),
         }
     }
 }

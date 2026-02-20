@@ -14,8 +14,9 @@
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
 
 use crate::{AppSystems, PausableSystems, demo::animation::Direction};
-use avian2d::{parry::utils::point_in_triangle::Orientation, prelude::*};
-use bevy::{prelude::*, window::PrimaryWindow};
+use avian2d::prelude::*;
+use bevy::prelude::*;
+//window::PrimaryWindow
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -69,22 +70,3 @@ fn apply_movement(mut movement_query: Query<(&MovementController, &mut LinearVel
         rb_vel.0 = controller.max_speed * controller.intent.get_vec2(); // normal
     }
 }
-
-/*
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct ScreenWrap;
-
-fn apply_screen_wrap(
-    window: Single<&Window, With<PrimaryWindow>>,
-    mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
-) {
-    let size = window.size() + 256.0;
-    let half_size = size / 2.0;
-    for mut transform in &mut wrap_query {
-        let position = transform.translation.xy();
-        let wrapped = (position + half_size).rem_euclid(size) - half_size;
-        transform.translation = wrapped.extend(transform.translation.z);
-    }
-}
-*/
