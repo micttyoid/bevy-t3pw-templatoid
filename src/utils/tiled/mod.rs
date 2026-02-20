@@ -18,6 +18,9 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+//use std::io::{BufReader, Read};
+//use xml::reader::{EventReader, XmlEvent};
+
 use avian2d::{
     /*
     parry::{
@@ -36,7 +39,8 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 use thiserror::Error;
-use tiled::ObjectShape;
+use tiled::{ObjectShape, Tileset};
+//use tiled::Tileset::parse_external_tileset;
 
 use crate::{
     // TODO: asset_tracking::LoadResource,
@@ -57,6 +61,7 @@ pub fn spawn_tiled_map<const MAP_NUMBER: usize>(
 ) {
     let asset_path = match MAP_NUMBER {
         1 => "tiled/map1.tile-16x16.tmx",
+        //1 => "tiled/foo.tmx",
         2 => "tiled/map2.tile-16x16.tmx",
         _ => {
             panic!("No such map number exists");
@@ -233,7 +238,6 @@ impl AssetLoader for TiledLoader {
                                 tile_images.push(texture.clone());
                             }
                         }
-
                         TilemapTexture::Vector(tile_images)
                     }
                 }
